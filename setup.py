@@ -19,13 +19,13 @@ tests_require = [
 
 setup(name='timeseries',
       version=version,
-      description="TODO",
+      description="Generic timeseries operations, like add, subtract.",
       long_description=long_description,
       # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[],
       keywords=[],
-      author='TODO',
-      author_email='TODO@nelen-schuurmans.nl',
+      author='Pieter Swinkels',
+      author_email='pieter.swinkels@nelen-schuurmans.nl',
       url='',
       license='GPL',
       packages=['timeseries'],

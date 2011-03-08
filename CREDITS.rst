@@ -1,4 +1,4 @@
 Credits
 =======
 
-- TODO started this library
+- Jack Ha started this library. The code is started by Pieter Swinkels.
