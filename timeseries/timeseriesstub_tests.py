@@ -32,6 +32,7 @@ from datetime import timedelta
 from unittest import TestCase
 
 from timeseriesstub import add_timeseries
+from timeseriesstub import average_monthly_events
 from timeseriesstub import create_empty_timeseries
 from timeseriesstub import enumerate_events
 from timeseriesstub import multiply_timeseries
@@ -41,7 +42,6 @@ from timeseriesstub import TimeseriesWithMemoryStub
 from timeseriesstub import TimeseriesRestrictedStub
 
 class TimeseriesStubTestSuite(TestCase):
-
 
     def test_c(self):
         """Test the value on the first date & time is the first value."""
@@ -180,6 +180,47 @@ class TimeseriesStubTestSuite(TestCase):
         expected_timeseries = TimeseriesStub((datetime(2011, 1, 26), 0.0))
         self.assertEqual(expected_timeseries, create_empty_timeseries(timeseries))
 
+
+class average_monthly_events_Tests(TestCase):
+
+    def test_a(self):
+        """Test the aggregation of a single daily event to an average monthly event."""
+        timeserie = TimeseriesStub()
+        timeserie.add_value(datetime(2010, 12, 8), 20)
+        avg_monthly_events = [event for event in average_monthly_events(timeserie)]
+        expected_avg_monthly_events = [(datetime(2010, 12, 1), 20.0)]
+        self.assertEqual(expected_avg_monthly_events, avg_monthly_events)
+
+    def test_b(self):
+        """Test the aggregation of multiple daily events to an average monthly event.
+
+        The daily events lie within a single month.
+
+        """
+        timeserie = TimeseriesStub()
+        timeserie.add_value(datetime(2010, 12, 8), 20)
+        timeserie.add_value(datetime(2010, 12, 9), 30)
+        timeserie.add_value(datetime(2010, 12, 10),40)
+        avg_monthly_events = [event for event in average_monthly_events(timeserie)]
+        expected_avg_monthly_events = [(datetime(2010, 12, 1), 30.0)]
+        self.assertEqual(expected_avg_monthly_events, avg_monthly_events)
+
+    def test_c(self):
+        """Test the aggregation of multiple daily events to an average monthly event.
+
+        The daily events lie within two consecutive months.
+
+        """
+        timeserie = TimeseriesStub()
+        timeserie.add_value(datetime(2010, 12, 8), 20)
+        timeserie.add_value(datetime(2010, 12, 9), 30)
+        timeserie.add_value(datetime(2010, 12, 10),40)
+        timeserie.add_value(datetime(2011, 1, 1), 50)
+        avg_monthly_events = [event for event in average_monthly_events(timeserie)]
+        expected_avg_monthly_events = [(datetime(2010, 12, 1), 3.75),
+                                       (datetime(2011, 1, 1), 50.0)]
+        self.assertEqual(expected_avg_monthly_events, avg_monthly_events)
+
 class TimeseriesWithMemoryTests(TestCase):
 
     def test_a(self):
@@ -230,34 +271,6 @@ class TimeseriesStubRestrictedTest(TestCase):
         self.assertEqual(list(expected_timeseries.events()), list(timeseries_restricted.events()))
 
 
-# class create_from_fileTestSuite(TestCase):
-
-#     def test_a(self):
-#         filereader = FileReaderStub(["openwater,neerslag,1996,1,2,0.000000"])
-#         result = create_from_file("dont care", filereader)
-#         expected_timeserie = TimeseriesStub()
-#         expected_timeserie.add_value(datetime(1996, 1, 2), 0.0)
-#         expected_result = {}
-#         expected_result["openwater"] = {}
-#         expected_result["openwater"]["neerslag"] = expected_timeserie
-#         self.assertEqual(expected_result, result)
-
-#     def test_b(self):
-#         filereader = FileReaderStub(["openwater,neerslag,1996,1,2,0.000000",
-#                                      "landelijk,berging,1996,1,2,413025.340000"])
-#         result = create_from_file("dont care", filereader)
-#         expected_result = {}
-#         expected_result["openwater"] = {}
-#         expected_timeserie = TimeseriesStub()
-#         expected_timeserie.add_value(datetime(1996, 1, 2), 0.0)
-#         expected_result["openwater"]["neerslag"] = expected_timeserie
-#         expected_result["landelijk"] = {}
-#         expected_timeserie = TimeseriesStub()
-#         expected_timeserie.add_value(datetime(1996, 1, 2), 413025.34)
-#         expected_result["landelijk"]["berging"] = expected_timeserie
-#         self.assertEqual(expected_result, result)
-
-
 class enumerate_eventsTestSuite(TestCase):
 
     def test_a(self):
@@ -277,6 +290,15 @@ class enumerate_eventsTestSuite(TestCase):
         expected_events = [((today, 5), (today, 20), (today, 10)),
                            ((tomorrow, 10), (tomorrow, 30), (tomorrow, 20))]
         self.assertEqual(expected_events, events)
+
+    def test_aa(self):
+        """Test the case with timeseries that have different times."""
+        today = datetime(2011, 11, 3, 0, 0)
+        later_today = datetime(2011, 11, 3, 9, 0)
+        timeseries = [TimeseriesStub((today, 2)),
+                      TimeseriesStub((later_today, 4))]
+        events = [event for event in enumerate_events(*timeseries)]
+        self.assertEqual([((today, 2), (later_today, 4))], events)
 
     def test_b(self):
         """Test the case that the time series contain different dates"""

@@ -27,71 +27,94 @@
 #******************************************************************************
 
 import logging
+import itertools
 
 from datetime import datetime
 from datetime import timedelta
 from math import fabs
 
+logger = logging.getLogger(__name__)
+
+def _first_of_day(event):
+    """Return the first moment of the day for an event."""
+    date, value = event
+    return datetime(date.year, date.month, date.day)
+
+
+def _first_of_month(event):
+    """Return the first day of the month for an event."""
+    date, value = event
+    return datetime(date.year, date.month, 1)
+
+
+def _first_of_quarter(event):
+    """Return the first day of the quarter for an event.
+
+    The first day of a quarter is returned:
+
+      >>> dt = datetime(1972, 12, 25)
+      >>> _first_of_quarter((dt, 'reinout'))
+      datetime.datetime(1972, 10, 1, 0, 0)
+
+      >>> dt = datetime(1972, 10, 1)
+      >>> _first_of_quarter((dt, 'bla'))
+      datetime.datetime(1972, 10, 1, 0, 0)
+
+      >>> dt = datetime(1976, 01, 27)
+      >>> _first_of_quarter((dt, 'maurits'))
+      datetime.datetime(1976, 1, 1, 0, 0)
+
+    """
+    date, value = event
+    month = 1 + ((date.month -1) / 3 * 3)
+    return datetime(date.year, month, 1)
+
+
+def _first_of_year(event):
+    """Return the first day of the year for an event."""
+    date, value = event
+    return datetime(date.year, 1, 1)
+
+def grouped_event_values(timeseries, period, average=False):
+    """Return iterator with totals for days/months/years for timeseries."""
+    groupers = {'year': _first_of_year,
+                'month': _first_of_month,
+                'quarter': _first_of_quarter,
+                'day': _first_of_day}
+    grouper = groupers.get(period)
+    assert grouper is not None
+
+    for date, events in itertools.groupby(timeseries.events(), grouper):
+        if average:
+            # To be able to count the events, we make a list of the generated
+            # elements. There are ways to count them without having to make the list
+            # explicit but this is the easy way.
+            events = list(events)
+            result = sum(value for (date, value) in events) / (1.0 * len(events))
+        else:
+            result = sum(value for (date, value) in events)
+        yield date, result
 
 def monthly_events(timeseries):
-        """Return a generator to iterate over all monthly events.
+    """Return a generator to iterate over all monthly events.
 
-        A TimeseriesStub stores daily events. This generator aggregates these
-        daily events to monthly events that is placed at the first of the month
-        and whose value is the total value of the daily events for that month.
+    A TimeseriesStub stores daily events. This generator aggregates these
+    daily events to monthly events. Each monthly events takes place on the
+    first of the month and its value is the total value of the daily events
+    for that month.
 
-        """
-        current_year = None
-        current_month = None
-        current_value = 0
-        for date, value in timeseries.events():
-            if current_month:
-                if date.year == current_year and date.month == current_month:
-                    current_value += value
-                elif date.year > current_year or date.month > current_month:
-                    yield datetime(current_year, current_month, 1), current_value
-                    current_year = date.year
-                    current_month = date.month
-                    current_value = value
-            else:
-                current_year = date.year
-                current_month = date.month
-                current_value = value
-        yield datetime(current_year, current_month, 1), current_value
+    """
+    return grouped_event_values(timeseries, 'month')
 
 def average_monthly_events(timeseries):
-        """Return a generator to iterate over all average monthly events.
+    """Return a generator to iterate over all average monthly events.
 
-        A TimeseriesStub stores daily events. This generator aggregates these
-        daily events to monthly events that is placed at the first of the month
-        and whose value is the total value of the daily events for that month.
+    A TimeseriesStub stores daily events. This generator aggregates these
+    daily events to monthly events that is placed at the first of the month
+    and whose value is the average value of the daily events for that month.
 
-        """
-        current_year = None
-        current_month = None
-        current_value = 0
-	value_count = 0
-        for date, value in timeseries.events():
-            if current_month:
-                if date.year == current_year and date.month == current_month:
-                    current_value += value
-		    value_count += 1
-                elif date.year > current_year or date.month > current_month:
-		    average_value = (1.0 * current_value) / value_count
-		    yield datetime(current_year, current_month, 1), average_value
-                    current_year = date.year
-                    current_month = date.month
-                    current_value = value
-		    value_count = 1
-            else:
-                current_year = date.year
-                current_month = date.month
-                current_value = value
-		value_count = 1
-	if value_count > 0:
-		average_value = (1.0 * current_value) / value_count
-		datetime(current_year, current_month, 1), average_value
-		yield datetime(current_year, current_month, 1), average_value
+    """
+    return grouped_event_values(timeseries, 'month', average=True)
 
 class TimeseriesStub:
     """Represents a time series.
@@ -136,7 +159,7 @@ class TimeseriesStub:
 
         The generator iterates over the events in the order they were added. If
         dates are missing in between two successive events, this function does not
-	fill in the missing dates with value.
+        fill in the missing dates with value.
 
         """
         for date, value in self._events:
@@ -163,27 +186,12 @@ class TimeseriesStub:
         """Return a generator to iterate over all monthly events.
 
         A TimeseriesStub stores daily events. This generator aggregates these
-        daily events to monthly events that is placed at the first of the month
-        and whose value is the total value of the daily events for that month.
+        daily events to monthly events. Each monthly events takes place on the
+        first of the month and its value is the total value of the daily events
+        for that month.
 
         """
-        current_year = None
-        current_month = None
-        current_value = 0
-        for date, value in self.events():
-            if current_month:
-                if date.year == current_year and date.month == current_month:
-                    current_value += value
-                elif date.year > current_year or date.month > current_month:
-                    yield datetime(current_year, current_month, 1), current_value
-                    current_year = date.year
-                    current_month = date.month
-                    current_value = value
-            else:
-                current_year = date.year
-                current_month = date.month
-                current_value = value
-        yield datetime(current_year, current_month, 1), current_value
+        return grouped_event_values(self, 'month')
 
     def __eq__(self, other):
         """Return True iff the two given time series represent the same events."""
@@ -198,6 +206,7 @@ class TimeseriesStub:
                 if not equal:
                     break
         return equal
+
 
 class TimeseriesWithMemoryStub(TimeseriesStub):
 
@@ -245,6 +254,7 @@ class TimeseriesWithMemoryStub(TimeseriesStub):
             previous_value = value
             date_to_yield = date + timedelta(1)
 
+
 class TimeseriesRestrictedStub(TimeseriesStub):
 
     def __init__(self, *args, **kwargs):
@@ -265,17 +275,23 @@ class TimeseriesRestrictedStub(TimeseriesStub):
             else:
                 break
 
+
 def enumerate_events(*timeseries_list):
     """Yield the events for all the days of the given time series.
 
     Parameter:
-    * timeseries_list -- list of time series
+      * timeseries_list *
+        list of time series
 
     Each of the given time series should specify values for possibly
     non-continous ranges of dates. For each day present in a time series, this
     method yields a tuple of events of all time series. If that day is present
     in a time series, the tuple contains the corresponding event. If that day
     is not present, the tuple contains an event with value 0 at that day.
+
+    The description above only mentions dates. However, this method can handle
+    events whose 'date' include a time component *as long as* the 'date' object
+    supports an isocalendar() method as datetime.date and datetime.datetime do.
 
     """
     next_start = datetime.max
@@ -302,7 +318,7 @@ def enumerate_events(*timeseries_list):
         for index, earliest_event in enumerate(earliest_event_list):
             if not earliest_event is None:
                 no_events_are_present = False
-                if earliest_event[0] == next_start:
+                if earliest_event[0].isocalendar() == next_start.isocalendar():
                     to_yield[index] = earliest_event
                     earliest_event_list[index] = next(events_list[index], None)
         next_start = next_start + timedelta(1)
@@ -315,10 +331,10 @@ def enumerate_merged_events(timeseries_a, timeseries_b):
     event_a = next(events_a, None)
     event_b = next(events_b, None)
     while not event_a is None and not event_b is None:
-        if event_a[0] < event_b[0]:
+        if event_a[0].isocalendar() < event_b[0].isocalendar():
             yield event_a[0], event_a[1], 0
             event_a = next(events_a, None)
-        elif event_a[0] > event_b[0]:
+        elif event_a[0].isocalendar() > event_b[0].isocalendar():
             yield event_b[0], 0, event_b[1]
             event_b = next(events_b, None)
         else:
@@ -402,4 +418,3 @@ def split_timeseries(timeseries):
             non_pos_timeseries.add_value(date, 0)
             non_neg_timeseries.add_value(date, 0)
     return (non_pos_timeseries, non_neg_timeseries)
-
