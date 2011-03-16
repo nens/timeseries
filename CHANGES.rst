@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.2 (unreleased)
+0.2 (2011-03-16)
 ----------------
 
 - The methods to enumerate the events of multiple time series could not handle
