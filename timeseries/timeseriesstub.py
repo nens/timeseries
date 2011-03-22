@@ -35,6 +35,7 @@ from math import fabs
 
 logger = logging.getLogger(__name__)
 
+
 def _first_of_day(event):
     """Return the first moment of the day for an event."""
     date, value = event
@@ -66,7 +67,7 @@ def _first_of_quarter(event):
 
     """
     date, value = event
-    month = 1 + ((date.month -1) / 3 * 3)
+    month = 1 + ((date.month - 1) / 3 * 3)
     return datetime(date.year, month, 1)
 
 
@@ -74,6 +75,7 @@ def _first_of_year(event):
     """Return the first day of the year for an event."""
     date, value = event
     return datetime(date.year, 1, 1)
+
 
 def grouped_event_values(timeseries, period, average=False):
     """Return iterator with totals for days/months/years for timeseries."""
@@ -86,14 +88,17 @@ def grouped_event_values(timeseries, period, average=False):
 
     for date, events in itertools.groupby(timeseries.events(), grouper):
         if average:
-            # To be able to count the events, we make a list of the generated
-            # elements. There are ways to count them without having to make the list
-            # explicit but this is the easy way.
+            # To be able to count the events, we make a list of the
+            # generated elements. There are ways to count them without
+            # having to make the list explicit but this is the easy
+            # way.
             events = list(events)
-            result = sum(value for (date, value) in events) / (1.0 * len(events))
+            result = (sum(value for (date, value) in events) /
+                      (1.0 * len(events)))
         else:
             result = sum(value for (date, value) in events)
         yield date, result
+
 
 def monthly_events(timeseries):
     """Return a generator to iterate over all monthly events.
@@ -106,6 +111,7 @@ def monthly_events(timeseries):
     """
     return grouped_event_values(timeseries, 'month')
 
+
 def average_monthly_events(timeseries):
     """Return a generator to iterate over all average monthly events.
 
@@ -115,6 +121,7 @@ def average_monthly_events(timeseries):
 
     """
     return grouped_event_values(timeseries, 'month', average=True)
+
 
 class TimeseriesStub:
     """Represents a time series.
@@ -157,9 +164,9 @@ class TimeseriesStub:
     def raw_events(self):
         """Return a generator to iterate over all daily events.
 
-        The generator iterates over the events in the order they were added. If
-        dates are missing in between two successive events, this function does not
-        fill in the missing dates with value.
+        The generator iterates over the events in the order they were
+        added. If dates are missing in between two successive events,
+        this function does not fill in the missing dates with value.
 
         """
         for date, value in self._events:
@@ -168,12 +175,13 @@ class TimeseriesStub:
     def events(self):
         """Return a generator to iterate over all daily events.
 
-        The generator iterates over the events in the order they were added. If
-        dates are missing in between two successive events, this function fills
-        in the missing dates with value 0.
+        The generator iterates over the events in the order they were
+        added. If dates are missing in between two successive events,
+        this function fills in the missing dates with value 0.
 
         """
-        date_to_yield = None # we initialize this variable to silence pyflakes
+        # We initialize this variable to silence pyflakes.
+        date_to_yield = None
         for date, value in self._events:
             if not date_to_yield is None:
                 while date_to_yield < date:
@@ -194,7 +202,8 @@ class TimeseriesStub:
         return grouped_event_values(self, 'month')
 
     def __eq__(self, other):
-        """Return True iff the two given time series represent the same events."""
+        """Return True iff the two given time series represent the
+        same events."""
         my_events = list(self.events())
         your_events = list(other.events())
         equal = len(my_events) == len(your_events)
@@ -243,7 +252,8 @@ class TimeseriesWithMemoryStub(TimeseriesStub):
         in the missing dates with the value on the latest known date.
 
         """
-        date_to_yield = None # we initialize this variable to silence pyflakes
+        # We initialize this variable to silence pyflakes.
+        date_to_yield = None
         previous_value = 0
         for date, value in self._events:
             if not date_to_yield is None:
@@ -325,6 +335,7 @@ def enumerate_events(*timeseries_list):
         if not no_events_are_present:
             yield tuple(to_yield)
 
+
 def enumerate_merged_events(timeseries_a, timeseries_b):
     events_a = timeseries_a.events()
     events_b = timeseries_b.events()
@@ -352,13 +363,15 @@ def enumerate_merged_events(timeseries_a, timeseries_b):
         for event in events_a:
             yield event[0], event[1], 0
 
+
 def create_empty_timeseries(timeseries):
-    """Return the empty TimeseriesStub that starts on the same day as the given time series.
+    """Return the empty TimeseriesStub that starts on the same day as
+    the given time series.
 
     If the given time series is non-empty, this function returns a
-    TimeseriesStub with a single event that starts on the day as the given time
-    series and which has value 0.0. If the given time series is empty, this
-    function returns an empty TimeseriesStub.
+    TimeseriesStub with a single event that starts on the day as the
+    given time series and which has value 0.0. If the given time
+    series is empty, this function returns an empty TimeseriesStub.
 
     """
     empty_timeseries = TimeseriesStub()
@@ -367,19 +380,27 @@ def create_empty_timeseries(timeseries):
         empty_timeseries.add_value(event[0], 0.0)
     return empty_timeseries
 
+
 def add_timeseries(timeseries_a, timeseries_b):
     """Return the TimeseriesStub that is the sum of the given time series."""
     result = TimeseriesStub()
-    for date, value_a, value_b in enumerate_merged_events(timeseries_a, timeseries_b):
+    for date, value_a, value_b in enumerate_merged_events(
+        timeseries_a, timeseries_b):
+
         result.add_value(date, value_a + value_b)
     return result
 
+
 def subtract_timeseries(timeseries_a, timeseries_b):
-    """Return the TimeseriesStub that is the difference of the given time series."""
+    """Return the TimeseriesStub that is the difference of the given
+    time series."""
     result = TimeseriesStub()
-    for date, value_a, value_b in enumerate_merged_events(timeseries_a, timeseries_b):
+    for date, value_a, value_b in enumerate_merged_events(
+        timeseries_a, timeseries_b):
+
         result.add_value(date, value_a - value_b)
     return result
+
 
 def multiply_timeseries(timeseries, value):
     """Return the the product of the given time series with the given value.
@@ -392,17 +413,19 @@ def multiply_timeseries(timeseries, value):
         product.add_value(event[0], event[1] * value)
     return product
 
+
 def split_timeseries(timeseries):
     """Return the 2-tuple of non-positive and non-negative time series.
 
     Paramaters:
     * timeseries -- time series that contains the events for the new 2 -tuple
 
-    This function creates a 2-tuple of TimeseriesStub, where the first element
-    contains all non-positive events (of the given time series) and the second
-    element contains all non-negative events. The 2 resulting time series have
-    events for the same dates as the given time series, but with value zero if
-    the value at that date does not have the right sign.
+    This function creates a 2-tuple of TimeseriesStub, where the first
+    element contains all non-positive events (of the given time
+    series) and the second element contains all non-negative
+    events. The 2 resulting time series have events for the same dates
+    as the given time series, but with value zero if the value at that
+    date does not have the right sign.
 
     """
     non_pos_timeseries = TimeseriesStub()
