@@ -78,7 +78,11 @@ def _first_of_year(event):
 
 
 def grouped_event_values(timeseries, period, average=False):
-    """Return iterator with totals for days/months/years for timeseries."""
+    """Return iterator with totals for days/months/years for timeseries.
+
+    Aggregation function is sum.
+    Optional: take average.
+    """
     groupers = {'year': _first_of_year,
                 'month': _first_of_month,
                 'quarter': _first_of_quarter,
@@ -171,6 +175,9 @@ class TimeseriesStub:
         """
         for date, value in self._events:
             yield date, value
+
+    def raw_events_dict(self):
+        return dict(self.raw_events())
 
     def events(self):
         """Return a generator to iterate over all daily events.
