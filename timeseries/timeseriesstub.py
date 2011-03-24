@@ -341,7 +341,85 @@ def enumerate_events(*timeseries_list):
         next_start = next_start + timedelta(1)
         if not no_events_are_present:
             yield tuple(to_yield)
+            
+def enumerate_dict_events(timeseries_dict):
+    """Yield the events for all the days of the given time series.
 
+    Parameter:
+      * timeseries_dict *
+        dictonary with time series (including nested timeseries, up to first level)
+
+    Each of the given time series should specify values for possibly
+    non-continous ranges of dates. For each day present in a time series, this
+    method yields a tuple of events of all time series. If that day is present
+    in a time series, the tuple contains the corresponding event. If that day
+    is not present, the tuple contains an event with value 0 at that day.
+
+    The description above only mentions dates. However, this method can handle
+    events whose 'date' include a time component *as long as* the 'date' object
+    supports an isocalendar() method as datetime.date and datetime.datetime do.
+
+    """
+    next_start = datetime.max
+    #get earliest moment
+    for timeseries in timeseries_dict.values():
+        if not type(timeseries) == type({}):
+            start = next((event[0] for event in timeseries.events()), None)
+        else:
+             for timeseries_nested in timeseries.values():
+                 start = next((event[0] for event in timeseries_nested.events()), None)
+        if not start is None:
+            next_start = min(next_start, start)
+
+    if next_start == datetime.max:
+        # none of the time series contains an event and we stop immediately
+        return
+
+    # next_start is the first date for which an event is specified
+    events_list = []
+    keys_list = []
+    for key, timeseries in timeseries_dict.items():
+        if not type(timeseries) == type({}):
+            events_list.append(timeseries.events())
+            keys_list.append([key])
+        else:
+            #nested timeserie
+            for key_nested, timeseries_nested in timeseries.items():
+                events_list.append(timeseries_nested.events())
+                keys_list.append([key, key_nested])
+                
+    earliest_event_list = [next(events, None) for events in events_list]
+
+    timeseries_count = len(timeseries_dict.keys())
+
+    no_events_are_present = False
+    while not no_events_are_present:
+        no_events_are_present = True
+        to_yield = {'date':next_start}
+        for key in keys_list:
+            if len(key) == 1:
+                to_yield[key[0]] = (next_start,0.0)
+            else:
+                if not to_yield.has_key(key[0]):
+                    to_yield[key[0]] = {}
+                to_yield[key[0]][key[1]] = (next_start,0.0)         
+        
+        
+        for index, earliest_event in enumerate(earliest_event_list):
+            if not earliest_event is None:
+                no_events_are_present = False
+                if earliest_event[0].isocalendar() == next_start.isocalendar():
+                    if len(keys_list[index]) == 1:
+                        to_yield[keys_list[index][0]] = earliest_event
+                    else:
+                        if not to_yield.has_key(keys_list[index][0]):
+                            to_yield[keys_list[index][0]] = {}
+                        to_yield[keys_list[index][0]][keys_list[index][1]] = earliest_event
+                    earliest_event_list[index] = next(events_list[index], None)
+        next_start = next_start + timedelta(1)
+        if not no_events_are_present:
+            yield to_yield
+            
 
 def enumerate_merged_events(timeseries_a, timeseries_b):
     events_a = timeseries_a.events()
