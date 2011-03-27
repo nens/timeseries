@@ -103,6 +103,43 @@ def grouped_event_values(timeseries, period, average=False):
             result = sum(value for (date, value) in events)
         yield date, result
 
+def cumulative_event_values(timeseries, reset_period, period='month', multiply=1):
+    """Return iterator with major events and at least with interval. cumulative is reset on reset_period
+
+    Aggregation function is sum.
+    Optional: take average.
+    """
+    reseters = {'year': _first_of_year,
+                'month': _first_of_month,
+                'quarter': _first_of_quarter,
+                'day': _first_of_day}
+    reseter = reseters.get(reset_period)
+    assert reseter is not None
+    
+    groupers = {'year': _first_of_year,
+                'month': _first_of_month,
+                'quarter': _first_of_quarter,
+                'day': _first_of_day}
+    grouper = groupers.get(period)
+    assert grouper is not None
+    
+    cumulative = 0
+    #reset moments
+    for date, events in itertools.groupby(timeseries.events(), reseter):
+        yield date - timedelta(1), cumulative * multiply
+        cumulative = 0
+        
+        for cum_date, cum_events in itertools.groupby(events, grouper):
+            cum_events = list(cum_events)
+            
+            yield cum_date, cumulative * multiply
+            cumulative += (sum(value for (date, value) in cum_events) /
+                      (1.0 * len(cum_events)))
+            previous_date = cum_date
+            
+
+
+
 
 def monthly_events(timeseries):
     """Return a generator to iterate over all monthly events.
@@ -466,13 +503,15 @@ def create_empty_timeseries(timeseries):
     return empty_timeseries
 
 
-def add_timeseries(timeseries_a, timeseries_b):
+def add_timeseries(*args):
     """Return the TimeseriesStub that is the sum of the given time series."""
     result = TimeseriesStub()
-    for date, value_a, value_b in enumerate_merged_events(
-        timeseries_a, timeseries_b):
+    for events in enumerate_events(
+        *args):
+        date = events[0][0]
+        value = sum([value[1] for value in events])
 
-        result.add_value(date, value_a + value_b)
+        result.add_value(date, value)
     return result
 
 
