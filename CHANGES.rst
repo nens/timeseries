@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.3 (unreleased)
+0.3 (2011-03-28)
 ----------------
 
 - Implemented support for the enumeration of the events of a dictionary of
