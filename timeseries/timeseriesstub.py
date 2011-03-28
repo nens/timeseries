@@ -216,7 +216,7 @@ class TimeseriesStub:
     def raw_events_dict(self):
         return dict(self.raw_events())
 
-    def events(self):
+    def events(self, start_date=None, end_date=None):
         """Return a generator to iterate over all daily events.
 
         The generator iterates over the events in the order they were
@@ -288,7 +288,7 @@ class TimeseriesWithMemoryStub(TimeseriesStub):
                 previous_event = event
         return result
 
-    def events(self):
+    def events(self, start_date=None, end_date=None):
         """Return a generator to iterate over all daily events.
 
         The generator iterates over the events in the order they were added. If
@@ -320,8 +320,8 @@ class TimeseriesRestrictedStub(TimeseriesStub):
         del kwargs["end_date"]
         TimeseriesStub.__init__(self, *args, **kwargs)
 
-    def events(self):
-        for event in self.timeseries.events():
+    def events(self, start_date=None, end_date=None):
+        for event in self.timeseries.events(start_date=self.start_date, end_date=self.end_date):
             if event[0] < self.start_date:
                 continue
             if event[0] < self.end_date:
