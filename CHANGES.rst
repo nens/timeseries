@@ -5,7 +5,11 @@ Changelog of timeseries
 0.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Implemented support for the enumeration of the events of a dictionary of
+  timeseries.
+
+- Added support for the addition of any number of time series to function
+  add_timeseries.
 
 
 0.2 (2011-03-16)
