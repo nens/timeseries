@@ -11,6 +11,9 @@ Changelog of timeseries
 - Added support for the addition of any number of time series to function
   add_timeseries.
 
+- Added support to the different event functions for an explicit start and end
+  date.
+
 
 0.2 (2011-03-16)
 ----------------
