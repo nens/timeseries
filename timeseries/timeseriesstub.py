@@ -115,28 +115,28 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
                 'day': _first_of_day}
     reseter = reseters.get(reset_period)
     assert reseter is not None
-    
+
     groupers = {'year': _first_of_year,
                 'month': _first_of_month,
                 'quarter': _first_of_quarter,
                 'day': _first_of_day}
     grouper = groupers.get(period)
     assert grouper is not None
-    
+
     cumulative = 0
     #reset moments
     for date, events in itertools.groupby(timeseries.events(), reseter):
         yield date - timedelta(1), cumulative * multiply
         cumulative = 0
-        
+
         for cum_date, cum_events in itertools.groupby(events, grouper):
             cum_events = list(cum_events)
-            
+
             yield cum_date, cumulative * multiply
             cumulative += (sum(value for (date, value) in cum_events) /
                       (1.0 * len(cum_events)))
             previous_date = cum_date
-            
+
 
 
 
@@ -378,7 +378,7 @@ def enumerate_events(*timeseries_list):
         next_start = next_start + timedelta(1)
         if not no_events_are_present:
             yield tuple(to_yield)
-            
+
 def enumerate_dict_events(timeseries_dict):
     """Yield the events for all the days of the given time series.
 
@@ -424,10 +424,8 @@ def enumerate_dict_events(timeseries_dict):
             for key_nested, timeseries_nested in timeseries.items():
                 events_list.append(timeseries_nested.events())
                 keys_list.append([key, key_nested])
-                
-    earliest_event_list = [next(events, None) for events in events_list]
 
-    timeseries_count = len(timeseries_dict.keys())
+    earliest_event_list = [next(events, None) for events in events_list]
 
     no_events_are_present = False
     while not no_events_are_present:
@@ -439,9 +437,9 @@ def enumerate_dict_events(timeseries_dict):
             else:
                 if not to_yield.has_key(key[0]):
                     to_yield[key[0]] = {}
-                to_yield[key[0]][key[1]] = (next_start,0.0)         
-        
-        
+                to_yield[key[0]][key[1]] = (next_start,0.0)
+
+
         for index, earliest_event in enumerate(earliest_event_list):
             if not earliest_event is None:
                 no_events_are_present = False
@@ -456,7 +454,7 @@ def enumerate_dict_events(timeseries_dict):
         next_start = next_start + timedelta(1)
         if not no_events_are_present:
             yield to_yield
-            
+
 
 def enumerate_merged_events(timeseries_a, timeseries_b):
     events_a = timeseries_a.events()
