@@ -76,6 +76,10 @@ def _first_of_year(event):
     date, value = event
     return datetime(date.year, 1, 1)
 
+def _first_of_hydro_year(event):
+    """Return the first day of the year for an event."""
+    date, value = event
+    return datetime(date.year, 1, 1)
 
 def grouped_event_values(timeseries, period, average=False):
     """Return iterator with totals for days/months/years for timeseries.
@@ -103,13 +107,14 @@ def grouped_event_values(timeseries, period, average=False):
             result = sum(value for (date, value) in events)
         yield date, result
 
-def cumulative_event_values(timeseries, reset_period, period='month', multiply=1):
+def cumulative_event_values(timeseries, reset_period, period='month', multiply=1, time_shift=0):
     """Return iterator with major events and at least with interval. cumulative is reset on reset_period
 
     Aggregation function is sum.
     Optional: take average.
     """
     reseters = {'year': _first_of_year,
+                'hydro_year': _first_of_hydro_year,
                 'month': _first_of_month,
                 'quarter': _first_of_quarter,
                 'day': _first_of_day}
@@ -125,14 +130,15 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
 
     cumulative = 0
     #reset moments
+    time_shift = timedelta(time_shift) #timedelta(time_shift)
     for date, events in itertools.groupby(timeseries.events(), reseter):
-        yield date - timedelta(1), cumulative * multiply
+        yield (date - timedelta(1) + time_shift), cumulative * multiply
         cumulative = 0
 
         for cum_date, cum_events in itertools.groupby(events, grouper):
             cum_events = list(cum_events)
 
-            yield cum_date, cumulative * multiply
+            yield (cum_date + time_shift), cumulative * multiply
             cumulative += (sum(value for (date, value) in cum_events) /
                       (1.0 * len(cum_events)))
             previous_date = cum_date
