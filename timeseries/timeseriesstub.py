@@ -145,8 +145,6 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
 
 
 
-
-
 def monthly_events(timeseries):
     """Return a generator to iterate over all monthly events.
 
@@ -169,6 +167,51 @@ def average_monthly_events(timeseries):
     """
     return grouped_event_values(timeseries, 'month', average=True)
 
+def daily_events(events, default_value=0):
+    """Return a generator to iterate over all daily events.
+
+    The generator iterates over the events in the given order. If dates are
+    missing in between two successive events, this function fills in the
+    missing dates with the given default value.
+
+    Parameter
+      * events *
+        sequence of (date or datetime, value) pairs ordered by date or datetime
+
+    """
+    # We initialize this variable to silence pyflakes.
+    date_to_yield = None
+    for date, value in events:
+        if not date_to_yield is None:
+            while date_to_yield < date:
+                yield date_to_yield, default_value
+                date_to_yield = date_to_yield + timedelta(1)
+        yield date, value
+        date_to_yield = date + timedelta(1)
+
+def daily_sticky_events(events):
+    """Return a generator to iterate over all daily events.
+
+    The generator iterates over the events in the order they were added. If
+    dates are missing in between two successive events, this function fills in
+    the missing dates with the value on the latest known date.
+
+    Parameter
+      * events *
+        sequence of (date or datetime, value) pairs ordered by date or datetime
+
+    """
+    # We initialize this variable to silence pyflakes.
+    date_to_yield = None
+    previous_value = 0
+    for date, value in events:
+        if not date_to_yield is None:
+            while date_to_yield < date:
+                yield date_to_yield, previous_value
+                date_to_yield = date_to_yield + timedelta(1)
+        yield date, value
+        previous_value = value
+        date_to_yield = date + timedelta(1)
 
 class TimeseriesStub:
     """Represents a time series.
@@ -230,15 +273,8 @@ class TimeseriesStub:
         this function fills in the missing dates with value 0.
 
         """
-        # We initialize this variable to silence pyflakes.
-        date_to_yield = None
-        for date, value in self._events:
-            if not date_to_yield is None:
-                while date_to_yield < date:
-                    yield date_to_yield, 0
-                    date_to_yield = date_to_yield + timedelta(1)
+        for date, value in daily_events(self._events):
             yield date, value
-            date_to_yield = date + timedelta(1)
 
     def monthly_events(self):
         """Return a generator to iterate over all monthly events.
@@ -302,17 +338,8 @@ class TimeseriesWithMemoryStub(TimeseriesStub):
         in the missing dates with the value on the latest known date.
 
         """
-        # We initialize this variable to silence pyflakes.
-        date_to_yield = None
-        previous_value = 0
-        for date, value in self._events:
-            if not date_to_yield is None:
-                while date_to_yield < date:
-                    yield date_to_yield, previous_value
-                    date_to_yield = date_to_yield + timedelta(1)
+        for date, value in daily_sticky_events(self._events):
             yield date, value
-            previous_value = value
-            date_to_yield = date + timedelta(1)
 
 
 class TimeseriesRestrictedStub(TimeseriesStub):
