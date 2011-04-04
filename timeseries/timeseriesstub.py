@@ -272,6 +272,8 @@ class TimeseriesStub:
         added. If dates are missing in between two successive events,
         this function fills in the missing dates with value 0.
 
+        .. todo:: this method still ignores the given start and end date
+
         """
         for date, value in daily_events(self._events):
             yield date, value
