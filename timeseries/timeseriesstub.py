@@ -141,8 +141,6 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
             yield (cum_date + time_shift), cumulative * multiply
             cumulative += (sum(value for (date, value) in cum_events) /
                       (1.0 * len(cum_events)))
-            previous_date = cum_date
-
 
 
 def monthly_events(timeseries):
@@ -266,13 +264,15 @@ class TimeseriesStub:
         return dict(self.raw_events())
 
     def events(self, start_date=None, end_date=None):
-        """Return a generator to iterate over all daily events.
+        """Return a generator to iterate over the requested daily events.
 
         The generator iterates over the events in the order they were
         added. If dates are missing in between two successive events,
         this function fills in the missing dates with value 0.
 
-        .. todo:: this method still ignores the given start and end date
+        .. todo::
+
+          Method TimeseriesStub.events ignores the given start and end date.
 
         """
         for date, value in daily_events(self._events):
@@ -345,7 +345,19 @@ class TimeseriesWithMemoryStub(TimeseriesStub):
 
 
 class TimeseriesRestrictedStub(TimeseriesStub):
+    """Represents a time series that lies between specific dates.
 
+    A time series is a sequence of values ordered by date and time.
+
+    Instance variables:
+      * timeseries *
+        object that supports an events method
+      * start_date *
+        date of the first day of the time series
+      * end_date*
+        date of the day *after* the last day of the time series
+
+    """
     def __init__(self, *args, **kwargs):
         self.timeseries = kwargs["timeseries"]
         del kwargs["timeseries"]
@@ -356,14 +368,27 @@ class TimeseriesRestrictedStub(TimeseriesStub):
         TimeseriesStub.__init__(self, *args, **kwargs)
 
     def events(self, start_date=None, end_date=None):
-        for event in self.timeseries.events(start_date=self.start_date, end_date=self.end_date):
-            if event[0] < self.start_date:
-                continue
-            if event[0] < self.end_date:
-                yield event[0], event[1]
-            else:
-                break
+        """Return a generator to iterate over the requested events.
 
+        Parameters:
+          * start_date *
+            date of the earliest event to iterate over
+          * end_data *
+            date of the date after the latest event to iterate over
+        """
+        events = self.timeseries.events(start_date=self.start_date,
+                                        end_date=self.end_date)
+        if start_date is None and end_date is None:
+            for event in events:
+                yield event[0], event[1]
+        else:
+            for event in events:
+                if not start_date is None and event[0] < start_date:
+                    continue
+                if not end_date is None and event[0] < end_date:
+                    yield event[0], event[1]
+                else:
+                    break
 
 def enumerate_events(*timeseries_list):
     """Yield the events for all the days of the given time series.
