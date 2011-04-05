@@ -79,7 +79,11 @@ def _first_of_year(event):
 def _first_of_hydro_year(event):
     """Return the first day of the year for an event."""
     date, value = event
-    return datetime(date.year, 1, 1)
+    if date < datetime(date.year, 10, 1):
+        year = date.year - 1
+    else:
+        year = date.year
+    return datetime(year, 10, 1)
 
 def grouped_event_values(timeseries, period, average=False):
     """Return iterator with totals for days/months/years for timeseries.
@@ -133,7 +137,6 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
     time_shift = timedelta(time_shift) #timedelta(time_shift)
     for date, events in itertools.groupby(timeseries.events(), reseter):
         cumulative = 0
-
         for cum_date, cum_events in itertools.groupby(events, grouper):
             cum_events = list(cum_events)
             cumulative += (sum(value for (date, value) in cum_events) /
