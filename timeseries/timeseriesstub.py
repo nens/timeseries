@@ -132,15 +132,13 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
     #reset moments
     time_shift = timedelta(time_shift) #timedelta(time_shift)
     for date, events in itertools.groupby(timeseries.events(), reseter):
-        yield (date - timedelta(1) + time_shift), cumulative * multiply
         cumulative = 0
 
         for cum_date, cum_events in itertools.groupby(events, grouper):
             cum_events = list(cum_events)
-
-            yield (cum_date + time_shift), cumulative * multiply
             cumulative += (sum(value for (date, value) in cum_events) /
                       (1.0 * len(cum_events)))
+            yield (cum_date + time_shift), cumulative * multiply
 
 
 def monthly_events(timeseries):
