@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.4 (unreleased)
+0.4 (2011-04-06)
 ----------------
 
 - Fixed method TimeseriesRestrictedStub.events so it does not ignore the
