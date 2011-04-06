@@ -5,7 +5,13 @@ Changelog of timeseries
 0.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed method TimeseriesRestrictedStub.events so it does not ignore the
+  specified start and end.
+- Fixed the function that computes the first date of the hydro year of a given
+  event.
+- Removed functionality specifically for the display of a graph for cumulative
+  discharges. This functionality does not belongs in a low-level library such
+  as timeseries.
 
 
 0.3 (2011-03-28)
