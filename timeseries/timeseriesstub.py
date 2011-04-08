@@ -271,13 +271,18 @@ class TimeseriesStub:
         added. If dates are missing in between two successive events,
         this function fills in the missing dates with value 0.
 
-        .. todo::
-
-          Method TimeseriesStub.events ignores the given start and end date.
-
         """
-        for date, value in daily_events(self._events):
-            yield date, value
+        if start_date is not None and end_date is not None:
+            for date, value in daily_events(self._events):
+                if start_date is not None and date < start_date:
+                    continue
+                if end_date is not None and date < end_date:
+                    yield date, value
+                else:
+                    break
+        else:
+            for date, value in daily_events(self._events):
+                yield date, value
 
     def monthly_events(self):
         """Return a generator to iterate over all monthly events.
@@ -304,6 +309,67 @@ class TimeseriesStub:
                 if not equal:
                     break
         return equal
+
+class SparseTimeseriesStub:
+    """Represents a continuous time series.
+
+    A continuous time series is a sequence of values ordered by date and time
+    where each event is the day after the first event.
+
+    Instance variables:
+      * first_date *
+        date of the first event
+      * previous_date *
+        date of the last event that has been added
+      * values *
+        list of values
+
+    """
+    def __init__(self, first_date = None, values = None):
+        self.first_date = first_date
+        if values is None:
+            self.values = []
+        else:
+            self.values = values
+            self.previous_date = self.first_date + timedelta(len(values) - 1)
+
+    def add_value(self, date_time, value):
+        """Add the given value for the given date and time.
+
+        Please note that events should be added earliest date and time first.
+
+        """
+        if self.first_date is None:
+            self.first_date = date_time
+        else:
+            assert self.previous_date is not None
+            next_expected_date = self.previous_date + timedelta(1)
+            assert next_expected_date.isocalendar() == date_time.isocalendar()
+        self.previous_date = date_time
+        self.values.append(value)
+
+    def events(self, start_date=None, end_date=None):
+        """Return a generator to iterate over the requested daily events.
+
+        The generator iterates over the events in the order they were
+        added. If dates are missing in between two successive events,
+        this function fills in the missing dates with value 0.
+
+        """
+        date = self.first_date
+        if start_date is not None and end_date is not None:
+            for value in self.values:
+                if start_date is not None and date < start_date:
+                    continue
+                if end_date is not None and date < end_date:
+                    yield date, value
+                    date = date + timedelta(1)
+                else:
+                    break
+        else:
+            for value in self.values:
+                yield date, value
+                date = date + timedelta(1)
 
 
 class TimeseriesWithMemoryStub(TimeseriesStub):
@@ -341,8 +407,17 @@ class TimeseriesWithMemoryStub(TimeseriesStub):
         in the missing dates with the value on the latest known date.
 
         """
-        for date, value in daily_sticky_events(self._events):
-            yield date, value
+        if start_date is not None and end_date is not None:
+            for date, value in daily_sticky_events(self._events):
+                if start_date is not None and date < start_date:
+                    continue
+                if end_date is not None and date < end_date:
+                    yield date, value
+                else:
+                    break
+        else:
+            for date, value in daily_sticky_events(self._events):
+                yield date, value
 
 
 class TimeseriesRestrictedStub(TimeseriesStub):
@@ -611,8 +686,8 @@ def split_timeseries(timeseries):
     date does not have the right sign.
 
     """
-    non_pos_timeseries = TimeseriesStub()
-    non_neg_timeseries = TimeseriesStub()
+    non_pos_timeseries = SparseTimeseriesStub()
+    non_neg_timeseries = SparseTimeseriesStub()
     for (date, value) in timeseries.events():
         if value > 0:
             non_pos_timeseries.add_value(date, 0)

@@ -37,6 +37,7 @@ from timeseriesstub import create_empty_timeseries
 from timeseriesstub import enumerate_events
 from timeseriesstub import multiply_timeseries
 from timeseriesstub import split_timeseries
+from timeseriesstub import SparseTimeseriesStub
 from timeseriesstub import TimeseriesStub
 from timeseriesstub import TimeseriesWithMemoryStub
 from timeseriesstub import TimeseriesRestrictedStub
@@ -180,6 +181,38 @@ class TimeseriesStubTestSuite(TestCase):
         expected_timeseries = TimeseriesStub((datetime(2011, 1, 26), 0.0))
         self.assertEqual(expected_timeseries, create_empty_timeseries(timeseries))
 
+
+class SparseTimeseriesStubTests(TestCase):
+
+    def test_a(self):
+        """Test events returns the right events."""
+        timeseries = SparseTimeseriesStub(datetime(2011, 4, 8), [10.0, 20.0, 30.0])
+        expected_events = [(datetime(2011, 4,  8), 10.0),
+                           (datetime(2011, 4,  9), 20.0),
+                           (datetime(2011, 4, 10), 30.0)]
+        self.assertEqual(expected_events, list(timeseries.events()))
+
+    def test_b(self):
+        """Test add_value adds the right events."""
+        timeseries = SparseTimeseriesStub()
+        timeseries.add_value(datetime(2011, 4,  8), 10.0)
+        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 10), 30.0)
+        expected_events = [(datetime(2011, 4,  8), 10.0),
+                           (datetime(2011, 4,  9), 20.0),
+                           (datetime(2011, 4, 10), 30.0)]
+        self.assertEqual(expected_events, list(timeseries.events()))
+
+    def test_c(self):
+        """Test add_value can only add events on consecutive days."""
+        timeseries = SparseTimeseriesStub()
+        timeseries.add_value(datetime(2011, 4,  8), 10.0)
+        self.assertRaises(AssertionError, timeseries.add_value, datetime(2011, 4, 10), 30.0)
+
+    def test_d(self):
+        """Test add_value can only add events on consecutive days."""
+        timeseries = SparseTimeseriesStub(datetime(2011, 4, 8), [10.0, 20.0, 30.0])
+        self.assertRaises(AssertionError, timeseries.add_value, datetime(2011, 4, 12), 30.0)
 
 class average_monthly_events_Tests(TestCase):
 
