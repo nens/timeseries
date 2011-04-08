@@ -5,7 +5,11 @@ Changelog of timeseries
 0.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed TimeseriesStub.events and TimeseriesWithMemoryStub.events, which did
+  not take the given start and end date into account
+- Implemented SparseTimeseriesStub to store a contiguous time serie in less
+  memory; function split_timeseries already returns these time series instead
+  of the more memory hungry TimeseriesStub.
 
 
 0.4 (2011-04-06)
