@@ -76,6 +76,7 @@ def _first_of_year(event):
     date, value = event
     return datetime(date.year, 1, 1)
 
+
 def _first_of_hydro_year(event):
     """Return the first day of the year for an event."""
     date, value = event
@@ -84,6 +85,7 @@ def _first_of_hydro_year(event):
     else:
         year = date.year
     return datetime(year, 10, 1)
+
 
 def grouped_event_values(timeseries, period, average=False):
     """Return iterator with totals for days/months/years for timeseries.
@@ -111,6 +113,7 @@ def grouped_event_values(timeseries, period, average=False):
             result = sum(value for (date, value) in events)
         yield date, result
 
+
 def cumulative_event_values(timeseries, reset_period, period='month', multiply=1, time_shift=0):
     """Return iterator with major events and at least with interval. cumulative is reset on reset_period
 
@@ -134,7 +137,7 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
 
     cumulative = 0
     #reset moments
-    time_shift = timedelta(time_shift) #timedelta(time_shift)
+    time_shift = timedelta(time_shift)
     for date, events in itertools.groupby(timeseries.events(), reseter):
         cumulative = 0
         for cum_date, cum_events in itertools.groupby(events, grouper):
@@ -166,6 +169,7 @@ def average_monthly_events(timeseries):
     """
     return grouped_event_values(timeseries, 'month', average=True)
 
+
 def daily_events(events, default_value=0):
     """Return a generator to iterate over all daily events.
 
@@ -187,6 +191,7 @@ def daily_events(events, default_value=0):
                 date_to_yield = date_to_yield + timedelta(1)
         yield date, value
         date_to_yield = date + timedelta(1)
+
 
 def daily_sticky_events(events):
     """Return a generator to iterate over all daily events.
@@ -211,6 +216,7 @@ def daily_sticky_events(events):
         yield date, value
         previous_value = value
         date_to_yield = date + timedelta(1)
+
 
 class TimeseriesStub:
     """Represents a time series.
@@ -310,6 +316,7 @@ class TimeseriesStub:
                     break
         return equal
 
+
 class SparseTimeseriesStub:
     """Represents a continuous time series.
 
@@ -325,7 +332,7 @@ class SparseTimeseriesStub:
         list of values
 
     """
-    def __init__(self, first_date = None, values = None):
+    def __init__(self, first_date=None, values=None):
         self.first_date = first_date
         if values is None:
             self.values = []
@@ -466,6 +473,7 @@ class TimeseriesRestrictedStub(TimeseriesStub):
                 else:
                     break
 
+
 def enumerate_events(*timeseries_list):
     """Yield the events for all the days of the given time series.
 
@@ -515,6 +523,7 @@ def enumerate_events(*timeseries_list):
         if not no_events_are_present:
             yield tuple(to_yield)
 
+
 def enumerate_dict_events(timeseries_dict):
     """Yield the events for all the days of the given time series.
 
@@ -539,8 +548,8 @@ def enumerate_dict_events(timeseries_dict):
         if not type(timeseries) == type({}):
             start = next((event[0] for event in timeseries.events()), None)
         else:
-             for timeseries_nested in timeseries.values():
-                 start = next((event[0] for event in timeseries_nested.events()), None)
+            for timeseries_nested in timeseries.values():
+                start = next((event[0] for event in timeseries_nested.events()), None)
         if not start is None:
             next_start = min(next_start, start)
 
@@ -566,15 +575,14 @@ def enumerate_dict_events(timeseries_dict):
     no_events_are_present = False
     while not no_events_are_present:
         no_events_are_present = True
-        to_yield = {'date':next_start}
+        to_yield = {'date': next_start}
         for key in keys_list:
             if len(key) == 1:
-                to_yield[key[0]] = (next_start,0.0)
+                to_yield[key[0]] = (next_start, 0.0)
             else:
-                if not to_yield.has_key(key[0]):
+                if key[0] not in to_yield:
                     to_yield[key[0]] = {}
-                to_yield[key[0]][key[1]] = (next_start,0.0)
-
+                to_yield[key[0]][key[1]] = (next_start, 0.0)
 
         for index, earliest_event in enumerate(earliest_event_list):
             if not earliest_event is None:
@@ -583,7 +591,7 @@ def enumerate_dict_events(timeseries_dict):
                     if len(keys_list[index]) == 1:
                         to_yield[keys_list[index][0]] = earliest_event
                     else:
-                        if not to_yield.has_key(keys_list[index][0]):
+                        if keys_list[index][0] not in to_yield:
                             to_yield[keys_list[index][0]] = {}
                         to_yield[keys_list[index][0]][keys_list[index][1]] = earliest_event
                     earliest_event_list[index] = next(events_list[index], None)
