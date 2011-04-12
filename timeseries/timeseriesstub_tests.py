@@ -42,6 +42,7 @@ from timeseriesstub import TimeseriesStub
 from timeseriesstub import TimeseriesWithMemoryStub
 from timeseriesstub import TimeseriesRestrictedStub
 
+
 class TimeseriesStubTestSuite(TestCase):
 
     def test_c(self):
@@ -102,7 +103,7 @@ class TimeseriesStubTestSuite(TestCase):
         timeserie = TimeseriesStub()
         timeserie.add_value(datetime(2010, 12, 8), 20)
         timeserie.add_value(datetime(2010, 12, 9), 30)
-        timeserie.add_value(datetime(2010, 12, 10),40)
+        timeserie.add_value(datetime(2010, 12, 10), 40)
         monthly_events = [event for event in timeserie.monthly_events()]
         expected_monthly_events = [(datetime(2010, 12, 1), 90)]
         self.assertEqual(expected_monthly_events, monthly_events)
@@ -112,7 +113,7 @@ class TimeseriesStubTestSuite(TestCase):
         timeserie = TimeseriesStub()
         timeserie.add_value(datetime(2010, 12, 8), 20)
         timeserie.add_value(datetime(2010, 12, 9), 30)
-        timeserie.add_value(datetime(2010, 12, 10),40)
+        timeserie.add_value(datetime(2010, 12, 10), 40)
         timeserie.add_value(datetime(2011, 1, 1), 50)
         monthly_events = [event for event in timeserie.monthly_events()]
         expected_monthly_events = [(datetime(2010, 12, 1), 90),
@@ -214,6 +215,7 @@ class SparseTimeseriesStubTests(TestCase):
         timeseries = SparseTimeseriesStub(datetime(2011, 4, 8), [10.0, 20.0, 30.0])
         self.assertRaises(AssertionError, timeseries.add_value, datetime(2011, 4, 12), 30.0)
 
+
 class average_monthly_events_Tests(TestCase):
 
     def test_a(self):
@@ -233,7 +235,7 @@ class average_monthly_events_Tests(TestCase):
         timeserie = TimeseriesStub()
         timeserie.add_value(datetime(2010, 12, 8), 20)
         timeserie.add_value(datetime(2010, 12, 9), 30)
-        timeserie.add_value(datetime(2010, 12, 10),40)
+        timeserie.add_value(datetime(2010, 12, 10), 40)
         avg_monthly_events = [event for event in average_monthly_events(timeserie)]
         expected_avg_monthly_events = [(datetime(2010, 12, 1), 30.0)]
         self.assertEqual(expected_avg_monthly_events, avg_monthly_events)
@@ -247,12 +249,13 @@ class average_monthly_events_Tests(TestCase):
         timeserie = TimeseriesStub()
         timeserie.add_value(datetime(2010, 12, 8), 20)
         timeserie.add_value(datetime(2010, 12, 9), 30)
-        timeserie.add_value(datetime(2010, 12, 10),40)
+        timeserie.add_value(datetime(2010, 12, 10), 40)
         timeserie.add_value(datetime(2011, 1, 1), 50)
         avg_monthly_events = [event for event in average_monthly_events(timeserie)]
         expected_avg_monthly_events = [(datetime(2010, 12, 1), 3.75),
                                        (datetime(2011, 1, 1), 50.0)]
         self.assertEqual(expected_avg_monthly_events, avg_monthly_events)
+
 
 class TimeseriesWithMemoryTests(TestCase):
 
@@ -289,6 +292,7 @@ class TimeseriesWithMemoryTests(TestCase):
         expected_events = [(today, 20), (tomorrow, 20), (day_after_tomorrow, 30)]
         self.assertEqual(expected_events, events)
 
+
 class TimeseriesStubRestrictedTest(TestCase):
 
     def test_a(self):
@@ -307,8 +311,8 @@ class TimeseriesStubRestrictedTest(TestCase):
 class enumerate_eventsTestSuite(TestCase):
 
     def test_a(self):
-        today = datetime(2010,12,2)
-        tomorrow = datetime(2010,12,3)
+        today = datetime(2010, 12, 2)
+        tomorrow = datetime(2010, 12, 3)
         precipitation = TimeseriesStub()
         precipitation.add_value(today, 5)
         precipitation.add_value(tomorrow, 10)
@@ -335,8 +339,8 @@ class enumerate_eventsTestSuite(TestCase):
 
     def test_b(self):
         """Test the case that the time series contain different dates"""
-        today = datetime(2010,12,2)
-        tomorrow = datetime(2010,12,3)
+        today = datetime(2010, 12, 2)
+        tomorrow = datetime(2010, 12, 3)
         precipitation = TimeseriesStub()
         precipitation.add_value(today, 5)
         evaporation = TimeseriesStub()
@@ -351,7 +355,7 @@ class enumerate_eventsTestSuite(TestCase):
 
     def test_c(self):
         """Test the case that the time series contains an empty time series"""
-        today = datetime(2010,12,2)
+        today = datetime(2010, 12, 2)
         precipitation = TimeseriesStub()
         precipitation.add_value(today, 5)
         evaporation = TimeseriesStub()
@@ -360,11 +364,10 @@ class enumerate_eventsTestSuite(TestCase):
         expected_events = [((today, 5), (today, 0))]
         self.assertEqual(expected_events[0], events[0])
 
-
     def test_d(self):
         """Test the case that the time series contain different dates and an empty time series"""
-        today = datetime(2010,12,2)
-        tomorrow = datetime(2010,12,3)
+        today = datetime(2010, 12, 2)
+        tomorrow = datetime(2010, 12, 3)
         precipitation = TimeseriesStub()
         precipitation.add_value(today, 5)
         evaporation = TimeseriesStub()
@@ -381,4 +384,3 @@ class enumerate_eventsTestSuite(TestCase):
     def test_e(self):
         """Test enumerate_events returns an empty list with an empty time series."""
         self.assertEqual([], list(enumerate_events(TimeseriesStub())))
-
