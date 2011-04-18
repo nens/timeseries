@@ -647,7 +647,7 @@ def create_empty_timeseries(timeseries):
 
 def add_timeseries(*args):
     """Return the TimeseriesStub that is the sum of the given time series."""
-    result = TimeseriesStub()
+    result = SparseTimeseriesStub()
     for events in enumerate_events(
         *args):
         date = events[0][0]
@@ -660,7 +660,7 @@ def add_timeseries(*args):
 def subtract_timeseries(timeseries_a, timeseries_b):
     """Return the TimeseriesStub that is the difference of the given
     time series."""
-    result = TimeseriesStub()
+    result = SparseTimeseriesStub()
     for date, value_a, value_b in enumerate_merged_events(
         timeseries_a, timeseries_b):
 
@@ -674,7 +674,7 @@ def multiply_timeseries(timeseries, value):
     The product is a TimeseriesStub.
 
     """
-    product = TimeseriesStub()
+    product = SparseTimeseriesStub()
     for event in timeseries.events():
         product.add_value(event[0], event[1] * value)
     return product
