@@ -5,7 +5,7 @@ Changelog of timeseries
 0.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed an error in the computation of cumulative event values.
 
 
 0.5 (2011-04-19)
