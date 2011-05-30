@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.6 (unreleased)
+0.6 (2011-05-31)
 ----------------
 
 - Fixed an error in the computation of cumulative event values.
