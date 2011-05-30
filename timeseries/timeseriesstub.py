@@ -120,19 +120,20 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
     Aggregation function is sum.
     Optional: take average.
     """
-    reseters = {'year': _first_of_year,
+    if reset_period == 'hydro_year' and period == 'year':
+        # This is a really strange combination for which the rest of this
+        # function is not suited. We fix that as follows.
+        period = 'hydro_year'
+
+    firsters = {'year': _first_of_year,
                 'hydro_year': _first_of_hydro_year,
                 'month': _first_of_month,
                 'quarter': _first_of_quarter,
                 'day': _first_of_day}
-    reseter = reseters.get(reset_period)
+    reseter = firsters.get(reset_period)
     assert reseter is not None
 
-    groupers = {'year': _first_of_year,
-                'month': _first_of_month,
-                'quarter': _first_of_quarter,
-                'day': _first_of_day}
-    grouper = groupers.get(period)
+    grouper = firsters.get(period)
     assert grouper is not None
 
     cumulative = 0
@@ -141,9 +142,14 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
     for date, events in itertools.groupby(timeseries.events(), reseter):
         cumulative = 0
         for cum_date, cum_events in itertools.groupby(events, grouper):
-            cum_events = list(cum_events)
-            cumulative += (sum(value for (date, value) in cum_events) /
-                      (1.0 * len(cum_events)))
+            cumulative += sum(value for (date, value) in cum_events)
+            # It is possible that the grouper returns a date that lies before
+            # the date of the resetter, for example when you group by quarter
+            # and reset every month. This gives rise to strange dates as the
+            # date of the grouper should not be earlier then the date of the
+            # resetter. We fix that as follows.
+            if cum_date < date:
+                cum_date = date
             yield (cum_date + time_shift), cumulative * multiply
 
 
