@@ -125,6 +125,22 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
         # function is not suited. We fix that as follows.
         period = 'hydro_year'
 
+    # When the reset period is smaller than the group period, it is possible
+    # that the grouper returns a date before the date of the resetter, for
+    # example when the reset period is a month and the group period a
+    # quarter. But to which cumulative time series should this lead?
+    #
+    # To "fix" this problem, we use the following rule:
+    #
+    #    When the reset period is smaller than the group period, use the reset
+    #    period also for the group period.
+    #
+    # In this way, the user always sees the reset.
+
+    keys = ['day', 'month', 'quarter', 'hydro_year', 'year']
+    if keys.index(reset_period) < keys.index(period):
+        period = reset_period
+
     firsters = {'year': _first_of_year,
                 'hydro_year': _first_of_hydro_year,
                 'month': _first_of_month,
@@ -137,19 +153,11 @@ def cumulative_event_values(timeseries, reset_period, period='month', multiply=1
     assert grouper is not None
 
     cumulative = 0
-    #reset moments
     time_shift = timedelta(time_shift)
     for date, events in itertools.groupby(timeseries.events(), reseter):
         cumulative = 0
         for cum_date, cum_events in itertools.groupby(events, grouper):
             cumulative += sum(value for (date, value) in cum_events)
-            # It is possible that the grouper returns a date that lies before
-            # the date of the resetter, for example when you group by quarter
-            # and reset every month. This gives rise to strange dates as the
-            # date of the grouper should not be earlier then the date of the
-            # resetter. We fix that as follows.
-            if cum_date < date:
-                cum_date = date
             yield (cum_date + time_shift), cumulative * multiply
 
 
