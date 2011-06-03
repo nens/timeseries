@@ -125,7 +125,7 @@ def grouped_event_values(timeseries, period, average=False):
     Traceback (most recent call last):
        ...
     AssertionError
-    >>> 
+    >>>
 
     """
 
