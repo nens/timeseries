@@ -37,13 +37,21 @@ logger = logging.getLogger(__name__)
 
 
 def _first_of_day(event):
-    """Return the first moment of the day for an event."""
+    """Return the first moment of the day for an event.
+
+    >>> _first_of_day((datetime(1999, 10, 2, 3, 4), 0.0))
+    datetime.datetime(1999, 10, 2, 0, 0)
+    """
     date, value = event
     return datetime(date.year, date.month, date.day)
 
 
 def _first_of_month(event):
-    """Return the first day of the month for an event."""
+    """Return the first day of the month for an event.
+
+    >>> _first_of_month((datetime(1999, 10, 2, 3, 4), 0.0))
+    datetime.datetime(1999, 10, 1, 0, 0)
+    """
     date, value = event
     return datetime(date.year, date.month, 1)
 
@@ -72,13 +80,24 @@ def _first_of_quarter(event):
 
 
 def _first_of_year(event):
-    """Return the first day of the year for an event."""
+    """Return the first day of the year for an event.
+
+    >>> _first_of_year((datetime(1999, 10, 2, 3, 4), 0.0))
+    datetime.datetime(1999, 1, 1, 0, 0)
+    """
     date, value = event
     return datetime(date.year, 1, 1)
 
 
 def _first_of_hydro_year(event):
-    """Return the first day of the year for an event."""
+    """Return the first day of the year for an event.
+    Hydrologic year starts in October!
+
+    >>> _first_of_hydro_year((datetime(1999, 10, 2, 3, 4), 0.0))
+    datetime.datetime(1999, 10, 1, 0, 0)
+    >>> _first_of_hydro_year((datetime(1999, 9, 2, 3, 4), 0.0))
+    datetime.datetime(1998, 10, 1, 0, 0)
+    """
     date, value = event
     if date < datetime(date.year, 10, 1):
         year = date.year - 1
@@ -92,7 +111,24 @@ def grouped_event_values(timeseries, period, average=False):
 
     Aggregation function is sum.
     Optional: take average.
+
+    >>> ts = TimeseriesStub()  # empty timeseries
+    >>> [i for i in grouped_event_values(ts, 'day')]
+    []
+    >>> [i for i in grouped_event_values(ts, 'month')]
+    []
+    >>> [i for i in grouped_event_values(ts, 'quarter')]
+    []
+    >>> [i for i in grouped_event_values(ts, 'year')]
+    []
+    >>> [i for i in grouped_event_values(ts, 'not_a_period')]
+    Traceback (most recent call last):
+       ...
+    AssertionError
+    >>> 
+
     """
+
     groupers = {'year': _first_of_year,
                 'month': _first_of_month,
                 'quarter': _first_of_quarter,
