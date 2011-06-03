@@ -1,7 +1,7 @@
 [report]
 omit =
     */migrations/*
-    */test*
+    */*test*
     /Library/*
     /Users/*/.buildout/eggs/*
     /home/*/.buildout/eggs/*
