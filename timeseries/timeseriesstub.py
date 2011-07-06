@@ -413,20 +413,28 @@ class SparseTimeseriesStub:
         this function fills in the missing dates with value 0.
 
         """
-        date = self.first_date
+        current_date = self.first_date
         if start_date is not None and end_date is not None:
-            for value in self.values:
-                if start_date is not None and date < start_date:
-                    continue
-                if end_date is not None and date < end_date:
-                    yield date, value
-                    date = date + timedelta(1)
-                else:
-                    break
+            if current_date == start_date:
+                for value in self.values:
+                    if current_date < end_date:
+                        yield current_date, value
+                        current_date = current_date + timedelta(1)
+                    else:
+                        break
+            else:
+                for value in self.values:
+                    if current_date < start_date:
+                        pass
+                    elif current_date < end_date:
+                        yield current_date, value
+                    else:
+                        break
+                    current_date = current_date + timedelta(1)
         else:
             for value in self.values:
-                yield date, value
-                date = date + timedelta(1)
+                yield current_date, value
+                current_date = current_date + timedelta(1)
 
 
 class TimeseriesWithMemoryStub(TimeseriesStub):

@@ -215,6 +215,80 @@ class SparseTimeseriesStubTests(TestCase):
         timeseries = SparseTimeseriesStub(datetime(2011, 4, 8), [10.0, 20.0, 30.0])
         self.assertRaises(AssertionError, timeseries.add_value, datetime(2011, 4, 12), 30.0)
 
+    def test_e(self):
+        """Test events returns a subset of the events.
+
+        The subset includes all events.
+
+        """
+        timeseries = SparseTimeseriesStub()
+        timeseries.add_value(datetime(2011, 4,  8), 10.0)
+        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 10), 30.0)
+        timeseries.add_value(datetime(2011, 4, 11), 40.0)
+        start_date, end_date = datetime(2011, 4, 8), datetime(2011, 4, 12)
+        events = list(timeseries.events(start_date, end_date))
+        self.assertEqual(4, len(events))
+        self.assertEqual((datetime(2011, 4,  8), 10.0), events[0])
+        self.assertEqual((datetime(2011, 4,  9), 20.0), events[1])
+        self.assertEqual((datetime(2011, 4,  10), 30.0), events[2])
+        self.assertEqual((datetime(2011, 4,  11), 40.0), events[3])
+
+    def test_f(self):
+        """Test events returns a subset of the events.
+
+        The subset starts at the first event but does not include the later
+        events.
+
+        """
+        timeseries = SparseTimeseriesStub()
+        timeseries.add_value(datetime(2011, 4,  8), 10.0)
+        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 10), 30.0)
+        timeseries.add_value(datetime(2011, 4, 11), 40.0)
+        start_date, end_date = datetime(2011, 4, 8), datetime(2011, 4, 10)
+        events = list(timeseries.events(start_date, end_date))
+        self.assertEqual(2, len(events))
+        self.assertEqual((datetime(2011, 4,  8), 10.0), events[0])
+        self.assertEqual((datetime(2011, 4,  9), 20.0), events[1])
+
+    def test_g(self):
+        """Test events returns a subset of the events.
+
+        The subset starts before the first event and does not include the later
+        events.
+
+        """
+        timeseries = SparseTimeseriesStub()
+        timeseries.add_value(datetime(2011, 4,  8), 10.0)
+        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 10), 30.0)
+        timeseries.add_value(datetime(2011, 4, 11), 40.0)
+        start_date, end_date = datetime(2011, 4, 6), datetime(2011, 4, 10)
+        events = list(timeseries.events(start_date, end_date))
+        self.assertEqual(2, len(events))
+        self.assertEqual((datetime(2011, 4,  8), 10.0), events[0])
+        self.assertEqual((datetime(2011, 4,  9), 20.0), events[1])
+
+    def test_h(self):
+        """Test events returns a subset of the events.
+
+        The subset starts after the first event and does not include the later
+        events.
+
+        """
+        timeseries = SparseTimeseriesStub()
+        timeseries.add_value(datetime(2011, 4,  8), 10.0)
+        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 10), 30.0)
+        timeseries.add_value(datetime(2011, 4, 11), 40.0)
+        start_date, end_date = datetime(2011, 4, 9), datetime(2011, 4, 11)
+        events = list(timeseries.events(start_date, end_date))
+        self.assertEqual(2, len(events))
+        self.assertEqual((datetime(2011, 4,  9), 20.0), events[0])
+        self.assertEqual((datetime(2011, 4, 10), 30.0), events[1])
+
+
 
 class average_monthly_events_Tests(TestCase):
 
