@@ -5,6 +5,8 @@ Changelog of timeseries
 0.7 (unreleased)
 ----------------
 
+- Implemented function map_timeseries which applies a given function to each
+  value of a given time series and returns the resulting time series.
 - Fixed an error in the implementation of method
   SparseTimeseriesStub::events. This fixes the problem in the app
   lizard_waterbalance that sometimes the time series of intakes and pumps were

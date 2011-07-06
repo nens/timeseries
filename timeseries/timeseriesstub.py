@@ -727,9 +727,7 @@ def subtract_timeseries(timeseries_a, timeseries_b):
 
 
 def multiply_timeseries(timeseries, value):
-    """Return the the product of the given time series with the given value.
-
-    The product is a TimeseriesStub.
+    """Return the product of the given time series with the given value.
 
     """
     product = SparseTimeseriesStub()
@@ -737,6 +735,17 @@ def multiply_timeseries(timeseries, value):
         product.add_value(event[0], event[1] * value)
     return product
 
+
+def map_timeseries(timeseries, map_function):
+    """Apply the given map function to each value of the given time series.
+
+    This method returns a time series.
+
+    """
+    product = SparseTimeseriesStub()
+    for time, value in timeseries.events():
+        product.add_value(time, map_function(value))
+    return product
 
 def split_timeseries(timeseries):
     """Return the 2-tuple of non-positive and non-negative time series.

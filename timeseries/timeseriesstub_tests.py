@@ -35,6 +35,7 @@ from timeseriesstub import add_timeseries
 from timeseriesstub import average_monthly_events
 from timeseriesstub import create_empty_timeseries
 from timeseriesstub import enumerate_events
+from timeseriesstub import map_timeseries
 from timeseriesstub import multiply_timeseries
 from timeseriesstub import split_timeseries
 from timeseriesstub import SparseTimeseriesStub
@@ -181,6 +182,18 @@ class TimeseriesStubTestSuite(TestCase):
         timeseries = TimeseriesStub((datetime(2011, 1, 26), 10))
         expected_timeseries = TimeseriesStub((datetime(2011, 1, 26), 0.0))
         self.assertEqual(expected_timeseries, create_empty_timeseries(timeseries))
+
+    def test_l(self):
+        """Test map_timeseries on a non-empty timeseries."""
+        timeseries = TimeseriesStub((datetime(2011, 7, 6), 10),
+                                    (datetime(2011, 7, 7), 20),
+                                    (datetime(2011, 7, 8), 30))
+        expected_events = [(datetime(2011, 7, 6), -10),
+                           (datetime(2011, 7, 7), -20),
+                           (datetime(2011, 7, 8), -30)]
+        map_function = lambda v: -1.0 * abs(v)
+        events = list(map_timeseries(timeseries, map_function).events())
+        self.assertEqual(expected_events, events)
 
 
 class SparseTimeseriesStubTests(TestCase):
