@@ -5,7 +5,10 @@ Changelog of timeseries
 0.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed an error in the implementation of method
+  SparseTimeseriesStub::events. This fixes the problem in the app
+  lizard_waterbalance that sometimes the time series of intakes and pumps were
+  appeared empty (ticket 3020).
 
 
 0.6 (2011-05-31)
