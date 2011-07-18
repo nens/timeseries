@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.7 (unreleased)
+0.7 (2011-07-18)
 ----------------
 
 - Implemented function map_timeseries which applies a given function to each
