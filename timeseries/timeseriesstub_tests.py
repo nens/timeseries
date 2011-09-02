@@ -88,7 +88,9 @@ class TimeseriesStubTestSuite(TestCase):
         timeserie.add_value(today, 20)
         timeserie.add_value(day_after_tomorrow, 30)
         events = [event for event in timeserie.events()]
-        expected_events = [(today, 20), (tomorrow, 0), (day_after_tomorrow, 30)]
+        expected_events = [(today, 20),
+                           (tomorrow, 0),
+                           (day_after_tomorrow, 30)]
         self.assertEqual(expected_events, events)
 
     def test_fa(self):
@@ -110,7 +112,10 @@ class TimeseriesStubTestSuite(TestCase):
         self.assertEqual(expected_monthly_events, monthly_events)
 
     def test_fc(self):
-        """Test the aggregation of a multiple daily events to monthly events."""
+        """Test the aggregation of a multiple daily events to monthly
+        events.
+
+        """
         timeserie = TimeseriesStub()
         timeserie.add_value(datetime(2010, 12, 8), 20)
         timeserie.add_value(datetime(2010, 12, 9), 30)
@@ -157,7 +162,8 @@ class TimeseriesStubTestSuite(TestCase):
         timeserie.add_value(today, 10)
         timeserie.add_value(tomorrow, 20)
         expected_timeserie = [(today, 40), (tomorrow, 80)]
-        multiplied_timeseries = list(multiply_timeseries(timeserie, 4).events())
+        multiplied_timeseries = \
+             list(multiply_timeseries(timeserie, 4).events())
         self.assertEqual(expected_timeserie, multiplied_timeseries)
 
     def test_i(self):
@@ -313,7 +319,6 @@ class SparseTimeseriesStubTests(TestCase):
         self.assertEqual((datetime(2011, 4, 10), 30.0), events[1])
 
 
-
 class average_monthly_events_Tests(TestCase):
 
     def test_a(self):
@@ -406,9 +411,10 @@ class TimeseriesStubRestrictedTest(TestCase):
         timeseries = TimeseriesStub((datetime(2011, 1, 26), 0.0),
                                     (datetime(2011, 2, 3), 10.0),
                                     (datetime(2011, 2, 28), 0.0))
-        timeseries_restricted = TimeseriesRestrictedStub(timeseries=timeseries,\
-             start_date=datetime(2011, 2, 2),\
-             end_date=datetime(2011, 2, 5))
+        timeseries_restricted = \
+             TimeseriesRestrictedStub(timeseries=timeseries,
+                                      start_date=datetime(2011, 2, 2),
+                                      end_date=datetime(2011, 2, 5))
         expected_timeseries = TimeseriesStub((datetime(2011, 2, 2), 0.0),
                                              (datetime(2011, 2, 3), 10.0),
                                              (datetime(2011, 2, 4), 0.0))
@@ -497,5 +503,8 @@ class enumerate_eventsTestSuite(TestCase):
         self.assertEqual(expected_events[1], events[1])
 
     def test_e(self):
-        """Test enumerate_events returns an empty list with an empty time series."""
+        """Test enumerate_events returns an empty list with an empty time
+        series.
+
+        """
         self.assertEqual([], list(enumerate_events(TimeseriesStub())))
