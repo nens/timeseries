@@ -150,8 +150,11 @@ def grouped_event_values(timeseries, period, average=False):
         yield date, result
 
 
-def cumulative_event_values(timeseries, reset_period, period='month', multiply=1, time_shift=0):
-    """Return iterator with major events and at least with interval. cumulative is reset on reset_period
+def cumulative_event_values(timeseries, reset_period, period='month',
+                            multiply=1, time_shift=0):
+    """Return iterator with major events and at least with interval.
+
+    cumulative is reset on reset_period
 
     Aggregation function is sum.
     Optional: take average.
@@ -587,7 +590,8 @@ def enumerate_dict_events(timeseries_dict):
 
     Parameter:
       * timeseries_dict *
-        dictonary with time series (including nested timeseries, up to first level)
+        dictonary with time series (including nested timeseries, up to first
+        level)
 
     Each of the given time series should specify values for possibly
     non-continous ranges of dates. For each day present in a time series, this
@@ -606,8 +610,8 @@ def enumerate_dict_events(timeseries_dict):
         if not type(timeseries) == type({}):
             start = next((event[0] for event in timeseries.events()), None)
         else:
-            for timeseries_nested in timeseries.values():
-                start = next((event[0] for event in timeseries_nested.events()), None)
+            for ts_nested in timeseries.values():
+                start = next((event[0] for event in ts_nested.events()), None)
         if not start is None:
             next_start = min(next_start, start)
 
@@ -651,7 +655,8 @@ def enumerate_dict_events(timeseries_dict):
                     else:
                         if keys_list[index][0] not in to_yield:
                             to_yield[keys_list[index][0]] = {}
-                        to_yield[keys_list[index][0]][keys_list[index][1]] = earliest_event
+                        to_yield[keys_list[index][0]][keys_list[index][1]] = \
+                             earliest_event
                     earliest_event_list[index] = next(events_list[index], None)
         next_start = next_start + timedelta(1)
         if not no_events_are_present:
@@ -746,6 +751,7 @@ def map_timeseries(timeseries, map_function):
     for time, value in timeseries.events():
         product.add_value(time, map_function(value))
     return product
+
 
 def split_timeseries(timeseries):
     """Return the 2-tuple of non-positive and non-negative time series.
