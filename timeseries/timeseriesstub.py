@@ -28,6 +28,7 @@
 
 import logging
 import itertools
+import timeseries
 
 from datetime import datetime
 from datetime import timedelta
@@ -271,8 +272,8 @@ def daily_sticky_events(events):
         date_to_yield = date + timedelta(1)
 
 
-class TimeseriesStub:
-    """Represents a time series.
+class TimeseriesStub(timeseries.TimeSeries):
+    """Implements a time series for testing.
 
     A time series is a sequence of values ordered by date and time.
 
