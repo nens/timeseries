@@ -43,6 +43,7 @@ from timeseriesstub import TimeseriesStub
 from timeseriesstub import TimeseriesWithMemoryStub
 from timeseriesstub import TimeseriesRestrictedStub
 
+from timeseries import TimeSeries
 
 class TimeseriesStubTestSuite(TestCase):
 
@@ -508,3 +509,24 @@ class enumerate_eventsTestSuite(TestCase):
 
         """
         self.assertEqual([], list(enumerate_events(TimeseriesStub())))
+
+class TimeSeriesTestSuite(TestCase):
+    def test_001(self):
+        """can we create an empty TimeSeries object?
+        """
+        
+        TimeSeries()
+
+    def test_002(self):
+        """can we create a TimeSeries object with a couple of properties?
+        """
+        
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        self.assertEqual('loc', obj.location_id)
+        self.assertEqual('par', obj.parameter_id)
+
+    def test_010(self):
+        'can we initialize a set of TimeSeries objects from a PI file?'
+
+        ## please define a test case
+        pass
