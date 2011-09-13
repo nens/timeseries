@@ -55,7 +55,7 @@ class TimeSeries:
         if end_date is None:
             end_date = self.get_end_date()
         return sorted([(k, v) for (k, v) in self.events.items()
-                       if start_date < k < end_date])
+                       if start_date <= k <= end_date])
 
     def __init__(self, events={}, **kwargs):
         ## one of: instantaneous, continuous.  we usually work with

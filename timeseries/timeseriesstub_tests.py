@@ -561,4 +561,28 @@ class TimeSeriesTestSuite(TestCase):
         self.assertEqual(d1, obj.get_start_date())
         self.assertEqual(d2, obj.get_end_date())
 
-    
+    def test_023(self):
+        'getting events of a non empty time series'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        import datetime
+        d1 = datetime.datetime(1979, 3, 15, 9, 35)
+        d3 = datetime.datetime(1979, 4, 12, 9, 35)
+        d2 = datetime.datetime(1979, 5, 15, 9, 35)
+        obj.events[d1] = 1.23
+        obj.events[d3] = 0.23
+        obj.events[d2] = -3.01
+        self.assertEqual(3, len(obj.get_events()))
+        self.assertEqual(2, len(obj.get_events(d3)))
+        self.assertEqual(2, len(obj.get_events(d1, d3)))
+
+    def test_024(self):
+        'getting events of a eventless time series'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        import datetime
+        d1 = datetime.datetime(1979, 3, 15, 9, 35)
+        d3 = datetime.datetime(1979, 4, 12, 9, 35)
+        self.assertEqual(0, len(obj.get_events()))
+        self.assertEqual(0, len(obj.get_events(d3)))
+        self.assertEqual(0, len(obj.get_events(d1, d3)))
