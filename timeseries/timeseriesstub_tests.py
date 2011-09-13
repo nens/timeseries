@@ -532,3 +532,33 @@ class TimeSeriesTestSuite(TestCase):
 
         ## please define a test case
         pass
+
+    def test_020(self):
+        'can we ask for the events of an eventless time series?'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        self.assertEqual(0, len(obj.get_events()))
+
+    def test_021(self):
+        'start and end of an eventless time series is 1970-01-01'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        import datetime
+        self.assertEqual(datetime.datetime(1970, 1, 1), obj.get_start_date())
+        self.assertEqual(datetime.datetime(1970, 1, 1), obj.get_end_date())
+
+    def test_022(self):
+        'start and end of a time series with events'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        import datetime
+        d1 = datetime.datetime(1979, 3, 15, 9, 35)
+        d3 = datetime.datetime(1979, 4, 12, 9, 35)
+        d2 = datetime.datetime(1979, 5, 15, 9, 35)
+        obj.events[d1] = 1.23
+        obj.events[d3] = 0.23
+        obj.events[d2] = -3.01
+        self.assertEqual(d1, obj.get_start_date())
+        self.assertEqual(d2, obj.get_end_date())
+
+    
