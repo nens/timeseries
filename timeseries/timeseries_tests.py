@@ -30,7 +30,7 @@ from unittest import TestCase
 from timeseries import TimeSeries
 from timeseries import str_to_datetime
 import pkg_resources
-import datetime
+from datetime import datetime
 
 
 class TimeSeriesTestSuite(TestCase):
@@ -64,16 +64,16 @@ class TimeSeriesTestSuite(TestCase):
         'start and end of an eventless time series is 1970-01-01'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        self.assertEqual(datetime.datetime(1970, 1, 1), obj.get_start_date())
-        self.assertEqual(datetime.datetime(1970, 1, 1), obj.get_end_date())
+        self.assertEqual(datetime(1970, 1, 1), obj.get_start_date())
+        self.assertEqual(datetime(1970, 1, 1), obj.get_end_date())
 
     def test_022(self):
         'start and end of a time series with events'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
-        d3 = datetime.datetime(1979, 4, 12, 9, 35)
-        d2 = datetime.datetime(1979, 5, 15, 9, 35)
+        d1 = datetime(1979, 3, 15, 9, 35)
+        d3 = datetime(1979, 4, 12, 9, 35)
+        d2 = datetime(1979, 5, 15, 9, 35)
         obj.events[d1] = 1.23
         obj.events[d3] = 0.23
         obj.events[d2] = -3.01
@@ -84,9 +84,9 @@ class TimeSeriesTestSuite(TestCase):
         'getting events of a non empty time series'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
-        d3 = datetime.datetime(1979, 4, 12, 9, 35)
-        d2 = datetime.datetime(1979, 5, 15, 9, 35)
+        d1 = datetime(1979, 3, 15, 9, 35)
+        d3 = datetime(1979, 4, 12, 9, 35)
+        d2 = datetime(1979, 5, 15, 9, 35)
         obj.events[d1] = 1.23
         obj.events[d3] = 0.23
         obj.events[d2] = -3.01
@@ -98,8 +98,8 @@ class TimeSeriesTestSuite(TestCase):
         'getting events of a eventless time series'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
-        d3 = datetime.datetime(1979, 4, 12, 9, 35)
+        d1 = datetime(1979, 3, 15, 9, 35)
+        d3 = datetime(1979, 4, 12, 9, 35)
         self.assertEqual(0, len(obj.get_events()))
         self.assertEqual(0, len(obj.get_events(d3)))
         self.assertEqual(0, len(obj.get_events(d1, d3)))
@@ -109,9 +109,9 @@ class TimeSeriesTestSuite(TestCase):
         __getitem__)'''
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
-        d3 = datetime.datetime(1979, 4, 12, 9, 35)
-        d2 = datetime.datetime(1979, 5, 15, 9, 35)
+        d1 = datetime(1979, 3, 15, 9, 35)
+        d3 = datetime(1979, 4, 12, 9, 35)
+        d2 = datetime(1979, 5, 15, 9, 35)
         obj[d1] = 1.23  # executing __setitem__
         obj[d3] = 0.23
         obj[d2] = -3.01
@@ -122,7 +122,7 @@ class TimeSeriesTestSuite(TestCase):
         'add_value is defined and equal to __setitem__'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
+        d1 = datetime(1979, 3, 15, 9, 35)
         ## setting
         obj.add_value(d1, 1.23)
         ## checking
@@ -132,7 +132,7 @@ class TimeSeriesTestSuite(TestCase):
         'get_value is defined and equal to __getitem__'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
+        d1 = datetime(1979, 3, 15, 9, 35)
         ## setting
         obj[d1] = 1.23
         ## checking
@@ -142,13 +142,32 @@ class TimeSeriesTestSuite(TestCase):
         'can use .get with default value'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
+        d1 = datetime(1979, 3, 15, 9, 35)
         obj.add_value(d1, 1.23)  # executing __setitem__
         ## finds values that are there
         [self.assertEquals(obj.events[d], obj.get(d)) for d in obj.events.keys()]
-        d2 = datetime.datetime(1979, 5, 15, 9, 35)
+        d2 = datetime(1979, 5, 15, 9, 35)
         ## returns default value if event is not there
         self.assertEquals(None, obj.get(d2))
+
+
+class TestUtilityFunctions(TestCase):
+    def test000(self):
+        'str_to_datetime, utc'
+        self.assertEquals(datetime(2010, 04, 03), 
+                          str_to_datetime("2010-04-03", "00:00:00"))
+
+    def test002(self):
+        'str_to_datetime, negative offset'
+        self.assertEquals(datetime(2010, 04, 03, 4), 
+                          str_to_datetime("2010-04-03", "00:00:00", -4))
+
+    def test004(self):
+        'str_to_datetime, positive offset'
+        self.assertEquals(datetime(2010, 04, 03, 11), 
+                          str_to_datetime("2010-04-03", "12:00:00", 1))
+        self.assertEquals(datetime(2012, 02, 29, 20), 
+                          str_to_datetime("2012-03-01", "00:00:00", 4))
 
 
 class TimeSeriesInputOutput(TestCase):
