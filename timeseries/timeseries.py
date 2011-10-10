@@ -237,3 +237,17 @@ class TimeSeries:
         """
 
         return cls.as_dict(input).values()
+
+    @classmethod
+    def write_to_pi_file(cls, dest, data):
+        """write TimeSeries to a PI-format file.
+
+        `data` is a collection of TimeSeries objects, anything like
+        `set`, `dict` or `list` should be good enough, as long as the
+        content is TimeSeries.
+
+        `dest` is the complete path of the file to be written.  or it
+        is a stream to which we can write.
+        """
+
+        raise RuntimeError("not implemented yet")
