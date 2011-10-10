@@ -207,3 +207,16 @@ class TimeSeriesInputOutput(TestCase):
                 (str_to_datetime("2010-04-08", "00:00:00", 2), 22),
                 (str_to_datetime("2010-04-10", "00:00:00", 2), 24), ],
                           ts.get_events())
+
+    def test200(self):
+        'TimeSeries.as_list reads file given its name'
+        obj = TimeSeries.as_list(self.testdata + "read.PI.timezone.2.xml")
+        self.assertTrue(isinstance(obj, list))
+        self.assertEquals(2, len(obj))
+
+    def test201(self):
+        'TimeSeries.as_list reads stream'
+        stream = file(self.testdata + "read.PI.timezone.2.xml")
+        obj = TimeSeries.as_list(stream)
+        self.assertTrue(isinstance(obj, list))
+        self.assertEquals(2, len(obj))
