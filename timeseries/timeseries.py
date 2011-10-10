@@ -29,6 +29,8 @@
 
 import logging
 import datetime
+from xml.dom.minidom import Document
+from xml.dom.minidom import parse
 
 logger = logging.getLogger(__name__)
 
@@ -111,18 +113,37 @@ class TimeSeries:
             return datetime.datetime(1970, 1, 1)
 
     @classmethod
+    def _from_xml(cls, stream):
+        """private function
+
+        convert an open input `stream` looking like a PI file into the
+        result described in as_dict
+        """
+
+        dom = parse(stream)
+        result = {}
+
+        return result
+
+    @classmethod
     def as_dict(cls, input):
         """convert input to collection of TimeSeries
 
-        input may be a PI file or just about anything that contains
-        and defines a set of time series.
+        input may be (the name of) a PI file or just about anything
+        that contains and defines a set of time series.
 
         output is a dictionary, where keys are the 2-tuple
         location_id/parameter_id and the values are the TimeSeries
         objects.
         """
 
-        return {}
+        if (isinstance(input, str) or hasattr(input, 'read')):
+            ## a string or a file, maybe PI?
+            result = cls._from_xml(input)
+        else:
+            result = None
+
+        return result
 
     @classmethod
     def as_list(cls, input):

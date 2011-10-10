@@ -123,6 +123,12 @@ class TimeSeriesInputOutput(TestCase):
         obj = TimeSeries.as_dict(stream)
         self.assertTrue(isinstance(obj, dict))
 
+    def test007(self):
+        'TimeSeries.as_dict receiving unrecognized object, returns None'
+        self.assertEquals(None, TimeSeries.as_dict(None))
+        self.assertEquals(None, TimeSeries.as_dict(123))
+        self.assertEquals(None, TimeSeries.as_dict(set()))
+
     def test010(self):
         'result of TimeSeries.as_dict is indexed on locationId parameterId 2-tuples'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
