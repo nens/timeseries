@@ -53,7 +53,7 @@ def str_to_datetime(date, time, offset=0):
     """convert date/time/offset to datetime
     """
 
-    return (datetime.strptime(date + 'T' + time, "%Y-%m-%dT%H:%M:%S") - 
+    return (datetime.strptime(date + 'T' + time, "%Y-%m-%dT%H:%M:%S") -
             timedelta(0, offset * 3600))
 
 
@@ -139,6 +139,12 @@ class TimeSeries:
 
         self.__setitem__(tstamp, value)
 
+    def get_value(self, tstamp):
+        """get event, fall back to __getitem__
+        """
+
+        return self.__getitem__(tstamp)
+
     def __setitem__(self, key, value):
         """behave as a dictionary
         """
@@ -166,7 +172,7 @@ class TimeSeries:
         """
 
         def getText(node):
-            return "".join(t.nodeValue for t in node.childNodes 
+            return "".join(t.nodeValue for t in node.childNodes
                            if t.nodeType == t.TEXT_NODE)
 
         def fromNode(node, names):
@@ -190,8 +196,8 @@ class TimeSeries:
             headerNode = seriesNode.getElementsByTagName("header")[0]
 
             kwargs = fromNode(headerNode,
-                              ['type', 'locationId', 'parameterId', 
-                               'missVal', 'stationName', 'lat', 'lon', 
+                              ['type', 'locationId', 'parameterId',
+                               'missVal', 'stationName', 'lat', 'lon',
                                'x', 'y', 'z', 'units'])
 
             obj = TimeSeries(**kwargs)
