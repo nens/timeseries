@@ -113,7 +113,6 @@ class TimeSeriesInputOutput(TestCase):
     def setUp(self):
         self.testdata = pkg_resources.resource_filename("timeseries", "testdata/")
 
-
     def test000(self):
         'TimeSeries.as_dict accepts file name, returns dictionary'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
@@ -134,7 +133,7 @@ class TimeSeriesInputOutput(TestCase):
     def test010(self):
         'result of TimeSeries.as_dict is indexed on locationId parameterId 2-tuples'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
-        self.assertEquals(set([("600", "P1201"), ("600", "P2504")]), 
+        self.assertEquals(set([("600", "P1201"), ("600", "P2504")]),
                           set(obj.keys()))
         self.assertTrue(isinstance(obj[("600", "P1201")], TimeSeries))
         self.assertTrue(isinstance(obj[("600", "P2504")], TimeSeries))
@@ -156,13 +155,12 @@ class TimeSeriesInputOutput(TestCase):
                 (str_to_datetime("2010-04-12", "00:00:00", 2), 22), ],
                           ts.get_events())
 
-
     def test101(self):
         'TimeSeries.as_dict reads events of series (b)'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         ts = obj[("600", "P2504")]
         self.assertEquals([
-                (str_to_datetime("2010-04-05", "00:00:00", 2), 17), 
-                (str_to_datetime("2010-04-08", "00:00:00", 2), 22), 
-                (str_to_datetime("2010-04-10", "00:00:00", 2), 24), ], 
+                (str_to_datetime("2010-04-05", "00:00:00", 2), 17),
+                (str_to_datetime("2010-04-08", "00:00:00", 2), 22),
+                (str_to_datetime("2010-04-10", "00:00:00", 2), 24), ],
                           ts.get_events())

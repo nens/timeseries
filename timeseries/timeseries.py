@@ -53,7 +53,8 @@ def str_to_datetime(date, time, offset=0):
     """convert date/time/offset to datetime
     """
 
-    return datetime.strptime(date + 'T' + time, "%Y-%m-%dT%H:%M:%S") - timedelta(0, offset * 3600)
+    return (datetime.strptime(date + 'T' + time, "%Y-%m-%dT%H:%M:%S") - 
+            timedelta(0, offset * 3600))
 
 
 class TimeSeries:
@@ -165,7 +166,8 @@ class TimeSeries:
         """
 
         def getText(node):
-            return "".join(t.nodeValue for t in node.childNodes if t.nodeType == t.TEXT_NODE)
+            return "".join(t.nodeValue for t in node.childNodes 
+                           if t.nodeType == t.TEXT_NODE)
 
         def fromNode(node, names):
             '''extract text from included elements, replace capital
@@ -188,10 +190,12 @@ class TimeSeries:
             headerNode = seriesNode.getElementsByTagName("header")[0]
 
             kwargs = fromNode(headerNode,
-                              ['type', 'locationId', 'parameterId', 'missVal',
-                               'stationName', 'lat', 'lon', 'x', 'y', 'z', 'units'])
+                              ['type', 'locationId', 'parameterId', 
+                               'missVal', 'stationName', 'lat', 'lon', 
+                               'x', 'y', 'z', 'units'])
 
-            result[kwargs['location_id'], kwargs['parameter_id']] = obj = TimeSeries(**kwargs)
+            obj = TimeSeries(**kwargs)
+            result[kwargs['location_id'], kwargs['parameter_id']] = obj
 
             for eventNode in seriesNode.getElementsByTagName("event"):
                 date = eventNode.getAttribute("date")
