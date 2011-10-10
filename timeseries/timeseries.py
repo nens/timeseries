@@ -29,10 +29,23 @@
 
 import logging
 import datetime
-from xml.dom.minidom import Document
 from xml.dom.minidom import parse
+import re
 
 logger = logging.getLogger(__name__)
+
+
+class Pythonifier(object):
+    """get a camelCaseString, return a python_style_string
+    """
+
+    def __init__(self):
+        self.pattern = re.compile("([A-Z])")
+
+    def __call__(self, text):
+        return self.pattern.sub(r"_\1", text).lower()
+
+pythonify = Pythonifier()
 
 
 class TimeSeries:
@@ -120,8 +133,34 @@ class TimeSeries:
         result described in as_dict
         """
 
+        def getText(node):
+            return "".join(t.nodeValue for t in node.childNodes if t.nodeType == t.TEXT_NODE)
+
+        def fromNode(node, names):
+            '''extract text from included elements, replace capital
+            letter with underscore + lower case letter, return
+            dictionary'''
+
+            return dict((pythonify(n.nodeName), getText(n)) 
+                        for n in node.childNodes 
+                        if n.nodeName in set(names))
+
         dom = parse(stream)
+        root = dom.childNodes[0]
+
+        offsetNode = root.getElementsByTagName("timeZone")[0]
+        offsetValue = float(getText(offsetNode))
+
         result = {}
+
+        for seriesNode in root.getElementsByTagName("series"):
+            headerNode = seriesNode.getElementsByTagName("header")[0]
+
+            kwargs = fromNode(headerNode,
+                              ['type', 'locationId', 'parameterId', 'missVal', 
+                               'stationName', 'lat', 'lon', 'x', 'y', 'z', 'units'])
+
+            result[kwargs['location_id'], kwargs['parameter_id']] = TimeSeries(**kwargs)
 
         return result
 
