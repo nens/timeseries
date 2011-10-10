@@ -43,8 +43,6 @@ from timeseriesstub import TimeseriesStub
 from timeseriesstub import TimeseriesWithMemoryStub
 from timeseriesstub import TimeseriesRestrictedStub
 
-from timeseries import TimeSeries
-
 
 class TimeseriesStubTestSuite(TestCase):
 
@@ -217,26 +215,26 @@ class SparseTimeseriesStubTests(TestCase):
         """Test events returns the right events."""
         timeseries = SparseTimeseriesStub(datetime(2011, 4, 8), \
                                           [10.0, 20.0, 30.0])
-        expected_events = [(datetime(2011, 4,  8), 10.0),
-                           (datetime(2011, 4,  9), 20.0),
+        expected_events = [(datetime(2011, 4, 8), 10.0),
+                           (datetime(2011, 4, 9), 20.0),
                            (datetime(2011, 4, 10), 30.0)]
         self.assertEqual(expected_events, list(timeseries.events()))
 
     def test_b(self):
         """Test add_value adds the right events."""
         timeseries = SparseTimeseriesStub()
-        timeseries.add_value(datetime(2011, 4,  8), 10.0)
-        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 8), 10.0)
+        timeseries.add_value(datetime(2011, 4, 9), 20.0)
         timeseries.add_value(datetime(2011, 4, 10), 30.0)
-        expected_events = [(datetime(2011, 4,  8), 10.0),
-                           (datetime(2011, 4,  9), 20.0),
+        expected_events = [(datetime(2011, 4, 8), 10.0),
+                           (datetime(2011, 4, 9), 20.0),
                            (datetime(2011, 4, 10), 30.0)]
         self.assertEqual(expected_events, list(timeseries.events()))
 
     def test_c(self):
         """Test add_value can only add events on consecutive days."""
         timeseries = SparseTimeseriesStub()
-        timeseries.add_value(datetime(2011, 4,  8), 10.0)
+        timeseries.add_value(datetime(2011, 4, 8), 10.0)
         self.assertRaises(AssertionError, timeseries.add_value, \
                           datetime(2011, 4, 10), 30.0)
 
@@ -254,17 +252,17 @@ class SparseTimeseriesStubTests(TestCase):
 
         """
         timeseries = SparseTimeseriesStub()
-        timeseries.add_value(datetime(2011, 4,  8), 10.0)
-        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 8), 10.0)
+        timeseries.add_value(datetime(2011, 4, 9), 20.0)
         timeseries.add_value(datetime(2011, 4, 10), 30.0)
         timeseries.add_value(datetime(2011, 4, 11), 40.0)
         start_date, end_date = datetime(2011, 4, 8), datetime(2011, 4, 12)
         events = list(timeseries.events(start_date, end_date))
         self.assertEqual(4, len(events))
-        self.assertEqual((datetime(2011, 4,  8), 10.0), events[0])
-        self.assertEqual((datetime(2011, 4,  9), 20.0), events[1])
-        self.assertEqual((datetime(2011, 4,  10), 30.0), events[2])
-        self.assertEqual((datetime(2011, 4,  11), 40.0), events[3])
+        self.assertEqual((datetime(2011, 4, 8), 10.0), events[0])
+        self.assertEqual((datetime(2011, 4, 9), 20.0), events[1])
+        self.assertEqual((datetime(2011, 4, 10), 30.0), events[2])
+        self.assertEqual((datetime(2011, 4, 11), 40.0), events[3])
 
     def test_f(self):
         """Test events returns a subset of the events.
@@ -274,15 +272,15 @@ class SparseTimeseriesStubTests(TestCase):
 
         """
         timeseries = SparseTimeseriesStub()
-        timeseries.add_value(datetime(2011, 4,  8), 10.0)
-        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 8), 10.0)
+        timeseries.add_value(datetime(2011, 4, 9), 20.0)
         timeseries.add_value(datetime(2011, 4, 10), 30.0)
         timeseries.add_value(datetime(2011, 4, 11), 40.0)
         start_date, end_date = datetime(2011, 4, 8), datetime(2011, 4, 10)
         events = list(timeseries.events(start_date, end_date))
         self.assertEqual(2, len(events))
-        self.assertEqual((datetime(2011, 4,  8), 10.0), events[0])
-        self.assertEqual((datetime(2011, 4,  9), 20.0), events[1])
+        self.assertEqual((datetime(2011, 4, 8), 10.0), events[0])
+        self.assertEqual((datetime(2011, 4, 9), 20.0), events[1])
 
     def test_g(self):
         """Test events returns a subset of the events.
@@ -292,15 +290,15 @@ class SparseTimeseriesStubTests(TestCase):
 
         """
         timeseries = SparseTimeseriesStub()
-        timeseries.add_value(datetime(2011, 4,  8), 10.0)
-        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 8), 10.0)
+        timeseries.add_value(datetime(2011, 4, 9), 20.0)
         timeseries.add_value(datetime(2011, 4, 10), 30.0)
         timeseries.add_value(datetime(2011, 4, 11), 40.0)
         start_date, end_date = datetime(2011, 4, 6), datetime(2011, 4, 10)
         events = list(timeseries.events(start_date, end_date))
         self.assertEqual(2, len(events))
-        self.assertEqual((datetime(2011, 4,  8), 10.0), events[0])
-        self.assertEqual((datetime(2011, 4,  9), 20.0), events[1])
+        self.assertEqual((datetime(2011, 4, 8), 10.0), events[0])
+        self.assertEqual((datetime(2011, 4, 9), 20.0), events[1])
 
     def test_h(self):
         """Test events returns a subset of the events.
@@ -310,14 +308,14 @@ class SparseTimeseriesStubTests(TestCase):
 
         """
         timeseries = SparseTimeseriesStub()
-        timeseries.add_value(datetime(2011, 4,  8), 10.0)
-        timeseries.add_value(datetime(2011, 4,  9), 20.0)
+        timeseries.add_value(datetime(2011, 4, 8), 10.0)
+        timeseries.add_value(datetime(2011, 4, 9), 20.0)
         timeseries.add_value(datetime(2011, 4, 10), 30.0)
         timeseries.add_value(datetime(2011, 4, 11), 40.0)
         start_date, end_date = datetime(2011, 4, 9), datetime(2011, 4, 11)
         events = list(timeseries.events(start_date, end_date))
         self.assertEqual(2, len(events))
-        self.assertEqual((datetime(2011, 4,  9), 20.0), events[0])
+        self.assertEqual((datetime(2011, 4, 9), 20.0), events[0])
         self.assertEqual((datetime(2011, 4, 10), 30.0), events[1])
 
 
@@ -510,79 +508,3 @@ class enumerate_eventsTestSuite(TestCase):
 
         """
         self.assertEqual([], list(enumerate_events(TimeseriesStub())))
-
-
-class TimeSeriesTestSuite(TestCase):
-    def test_001(self):
-        """can we create an empty TimeSeries object?
-        """
-
-        TimeSeries()
-
-    def test_002(self):
-        """can we create a TimeSeries object with a couple of properties?
-        """
-
-        obj = TimeSeries(location_id='loc', parameter_id='par')
-        self.assertEqual('loc', obj.location_id)
-        self.assertEqual('par', obj.parameter_id)
-
-    def test_010(self):
-        'can we initialize a set of TimeSeries objects from a PI file?'
-
-        ## please define a test case
-        pass
-
-    def test_020(self):
-        'can we ask for the events of an eventless time series?'
-
-        obj = TimeSeries(location_id='loc', parameter_id='par')
-        self.assertEqual(0, len(obj.get_events()))
-
-    def test_021(self):
-        'start and end of an eventless time series is 1970-01-01'
-
-        obj = TimeSeries(location_id='loc', parameter_id='par')
-        import datetime
-        self.assertEqual(datetime.datetime(1970, 1, 1), obj.get_start_date())
-        self.assertEqual(datetime.datetime(1970, 1, 1), obj.get_end_date())
-
-    def test_022(self):
-        'start and end of a time series with events'
-
-        obj = TimeSeries(location_id='loc', parameter_id='par')
-        import datetime
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
-        d3 = datetime.datetime(1979, 4, 12, 9, 35)
-        d2 = datetime.datetime(1979, 5, 15, 9, 35)
-        obj.events[d1] = 1.23
-        obj.events[d3] = 0.23
-        obj.events[d2] = -3.01
-        self.assertEqual(d1, obj.get_start_date())
-        self.assertEqual(d2, obj.get_end_date())
-
-    def test_023(self):
-        'getting events of a non empty time series'
-
-        obj = TimeSeries(location_id='loc', parameter_id='par')
-        import datetime
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
-        d3 = datetime.datetime(1979, 4, 12, 9, 35)
-        d2 = datetime.datetime(1979, 5, 15, 9, 35)
-        obj.events[d1] = 1.23
-        obj.events[d3] = 0.23
-        obj.events[d2] = -3.01
-        self.assertEqual(3, len(obj.get_events()))
-        self.assertEqual(2, len(obj.get_events(d3)))
-        self.assertEqual(2, len(obj.get_events(d1, d3)))
-
-    def test_024(self):
-        'getting events of a eventless time series'
-
-        obj = TimeSeries(location_id='loc', parameter_id='par')
-        import datetime
-        d1 = datetime.datetime(1979, 3, 15, 9, 35)
-        d3 = datetime.datetime(1979, 4, 12, 9, 35)
-        self.assertEqual(0, len(obj.get_events()))
-        self.assertEqual(0, len(obj.get_events(d3)))
-        self.assertEqual(0, len(obj.get_events(d1, d3)))

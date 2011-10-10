@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TimeSeries
+    xsi:schemaLocation="http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd"
+    version="1.2" xmlns="http://www.wldelft.nl/fews/PI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <timeZone>2.0</timeZone>
+    <series>
+        <header>
+            <type>instantaneous</type>
+            <locationId>600</locationId>
+            <parameterId>P1201</parameterId>
+            <timeStep unit="nonequidistant"/>
+            <startDate date="2010-04-03" time="00:00:00"/>
+            <endDate date="2010-04-12" time="00:00:00"/>
+            <missVal>-999.0</missVal>
+            <stationName>blower 1</stationName>
+            <units>uur/dag</units>
+        </header>
+        <event date="2010-04-03" time="00:00:00" value="20" flag="2"/>
+        <event date="2010-04-04" time="00:00:00" value="22" flag="2"/>
+        <event date="2010-04-05" time="00:00:00" value="17" flag="2"/>
+        <event date="2010-04-06" time="00:00:00" value="20" flag="2"/>
+        <event date="2010-04-07" time="00:00:00" value="21" flag="2"/>
+        <event date="2010-04-08" time="00:00:00" value="22" flag="2"/>
+        <event date="2010-04-09" time="00:00:00" value="24" flag="2"/>
+        <event date="2010-04-10" time="00:00:00" value="24" flag="2"/>
+        <event date="2010-04-11" time="00:00:00" value="24" flag="2"/>
+        <event date="2010-04-12" time="00:00:00" value="22" flag="2"/>
+    </series>
+    <series>
+        <header>
+            <type>instantaneous</type>
+            <locationId>600</locationId>
+            <parameterId>P2504</parameterId>
+            <timeStep unit="nonequidistant"/>
+            <startDate date="2010-04-05" time="00:00:00"/>
+            <endDate date="2010-04-10" time="00:00:00"/>
+            <missVal>-999.0</missVal>
+            <stationName>ontwatering</stationName>
+            <units>uur/dag</units>
+        </header>
+        <event date="2010-04-05" time="00:00:00" value="17" flag="2"/>
+        <event date="2010-04-08" time="00:00:00" value="22" flag="2"/>
+        <event date="2010-04-10" time="00:00:00" value="24" flag="2"/>
+    </series>
+</TimeSeries>
