@@ -162,7 +162,7 @@ class TimeSeriesInputOutput(TestCase):
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         ts = obj[("600", "P2504")]
         self.assertEquals([
-                ("2010-04-05", "00:00:00", 17), 
-                ("2010-04-08", "00:00:00", 22), 
-                ("2010-04-10", "00:00:00", 24), ], 
+                (str_to_datetime("2010-04-05", "00:00:00", 2), 17), 
+                (str_to_datetime("2010-04-08", "00:00:00", 2), 22), 
+                (str_to_datetime("2010-04-10", "00:00:00", 2), 24), ], 
                           ts.get_events())

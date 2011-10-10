@@ -132,6 +132,30 @@ class TimeSeries:
         except:
             return datetime(1970, 1, 1)
 
+    def add_value(self, tstamp, value):
+        """set event, fall back to __setitem__
+        """
+
+        self.__setitem__(tstamp, value)
+
+    def __setitem__(self, key, value):
+        """behave as a dictionary
+        """
+
+        self.events[key] = value
+
+    def __getitem__(self, key):
+        """behave as a dictionary
+        """
+
+        return self.events[key]
+
+    def get(self, key, default=None):
+        """behave as a dictionary
+        """
+
+        return self.events.get(key, default)
+
     @classmethod
     def _from_xml(cls, stream):
         """private function
@@ -148,8 +172,8 @@ class TimeSeries:
             letter with underscore + lower case letter, return
             dictionary'''
 
-            return dict((pythonify(n.nodeName), getText(n)) 
-                        for n in node.childNodes 
+            return dict((pythonify(n.nodeName), getText(n))
+                        for n in node.childNodes
                         if n.nodeName in set(names))
 
         dom = parse(stream)
@@ -164,10 +188,16 @@ class TimeSeries:
             headerNode = seriesNode.getElementsByTagName("header")[0]
 
             kwargs = fromNode(headerNode,
-                              ['type', 'locationId', 'parameterId', 'missVal', 
+                              ['type', 'locationId', 'parameterId', 'missVal',
                                'stationName', 'lat', 'lon', 'x', 'y', 'z', 'units'])
 
-            result[kwargs['location_id'], kwargs['parameter_id']] = TimeSeries(**kwargs)
+            result[kwargs['location_id'], kwargs['parameter_id']] = obj = TimeSeries(**kwargs)
+
+            for eventNode in seriesNode.getElementsByTagName("event"):
+                date = eventNode.getAttribute("date")
+                time = eventNode.getAttribute("time")
+                value = float(eventNode.getAttribute("value"))
+                obj[str_to_datetime(date, time, offsetValue)] = value
 
         return result
 
