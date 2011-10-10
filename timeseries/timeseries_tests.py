@@ -28,6 +28,7 @@
 
 from unittest import TestCase
 from timeseries import TimeSeries
+from timeseries import str_to_datetime
 import pkg_resources
 
 
@@ -112,6 +113,7 @@ class TimeSeriesInputOutput(TestCase):
     def setUp(self):
         self.testdata = pkg_resources.resource_filename("timeseries", "testdata/")
 
+
     def test000(self):
         'TimeSeries.as_dict accepts file name, returns dictionary'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
@@ -136,3 +138,31 @@ class TimeSeriesInputOutput(TestCase):
                           set(obj.keys()))
         self.assertTrue(isinstance(obj[("600", "P1201")], TimeSeries))
         self.assertTrue(isinstance(obj[("600", "P2504")], TimeSeries))
+
+    def test100(self):
+        'TimeSeries.as_dict reads events of series (a)'
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        ts = obj[("600", "P1201")]
+        self.assertEquals([
+                (str_to_datetime("2010-04-03", "00:00:00", 2), 20),
+                (str_to_datetime("2010-04-04", "00:00:00", 2), 22),
+                (str_to_datetime("2010-04-05", "00:00:00", 2), 17),
+                (str_to_datetime("2010-04-06", "00:00:00", 2), 20),
+                (str_to_datetime("2010-04-07", "00:00:00", 2), 21),
+                (str_to_datetime("2010-04-08", "00:00:00", 2), 22),
+                (str_to_datetime("2010-04-09", "00:00:00", 2), 24),
+                (str_to_datetime("2010-04-10", "00:00:00", 2), 24),
+                (str_to_datetime("2010-04-11", "00:00:00", 2), 24),
+                (str_to_datetime("2010-04-12", "00:00:00", 2), 22), ],
+                          ts.get_events())
+
+
+    def test101(self):
+        'TimeSeries.as_dict reads events of series (b)'
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        ts = obj[("600", "P2504")]
+        self.assertEquals([
+                ("2010-04-05", "00:00:00", 17), 
+                ("2010-04-08", "00:00:00", 22), 
+                ("2010-04-10", "00:00:00", 24), ], 
+                          ts.get_events())

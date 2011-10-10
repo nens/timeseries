@@ -28,7 +28,8 @@
 #******************************************************************************
 
 import logging
-import datetime
+from datetime import datetime
+from datetime import timedelta
 from xml.dom.minidom import parse
 import re
 
@@ -46,6 +47,13 @@ class Pythonifier(object):
         return self.pattern.sub(r"_\1", text).lower()
 
 pythonify = Pythonifier()
+
+
+def str_to_datetime(date, time, offset=0):
+    """convert date/time/offset to datetime
+    """
+
+    return datetime.strptime(date + 'T' + time, "%Y-%m-%dT%H:%M:%S") - timedelta(0, offset * 3600)
 
 
 class TimeSeries:
@@ -96,9 +104,8 @@ class TimeSeries:
         ## a string
         self.units = kwargs.get('units')
         ## key: timestamp, value: (double, flag, comment)
-        self.events = {}  # not necessarily a dictionary, just
-                          # anything associating a timestamp to a
-                          # value
+        self.events = dict(events)  # associate a timestamp to a
+                                    # value, let's make a copy of it
         pass
 
     def get_start_date(self):
@@ -111,7 +118,7 @@ class TimeSeries:
         try:
             return min(timestamps)
         except:
-            return datetime.datetime(1970, 1, 1)
+            return datetime(1970, 1, 1)
 
     def get_end_date(self):
         """return the last timestamp
@@ -123,7 +130,7 @@ class TimeSeries:
         try:
             return max(timestamps)
         except:
-            return datetime.datetime(1970, 1, 1)
+            return datetime(1970, 1, 1)
 
     @classmethod
     def _from_xml(cls, stream):
