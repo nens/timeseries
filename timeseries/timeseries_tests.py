@@ -150,7 +150,7 @@ class TimeSeriesTestSuite(TestCase):
         d1 = datetime(1979, 3, 15, 9, 35)
         obj.add_value(d1, 1.23)  # executing __setitem__
         ## finds values that are there
-        [self.assertEquals(obj.events[d], obj.get(d)) 
+        [self.assertEquals(obj.events[d], obj.get(d))
          for d in obj.events.keys()]
         d2 = datetime(1979, 5, 15, 9, 35)
         ## returns default value if event is not there
@@ -184,7 +184,7 @@ class TimeSeriesTestSuite(TestCase):
                          for i in current.childNodes
                          if i.nodeType != i.TEXT_NODE]
         self.assertEquals(2, len(childElements))
-        self.assertEquals(['header', 'event'], 
+        self.assertEquals(['header', 'event'],
                           [i.tagName for i in childElements])
         self.assertEquals({}, dict(current.attributes))
 
@@ -235,7 +235,7 @@ class TestUtilityFunctions(TestCase):
         self.assertTrue(isinstance(obj, Element))
         self.assertEquals('test', obj.tagName)
         self.assertEquals(1, len(obj.childNodes))
-        self.assertEquals("attr={'a': 2}", 
+        self.assertEquals("attr={'a': 2}",
                           ''.join(i.nodeValue for i in obj.childNodes))
 
 
@@ -327,8 +327,8 @@ class TimeSeriesOutput(TestCase):
     def test000(self):
         'TimeSeries.write_to_pi_file writes list to new file'
         obj = TimeSeries.as_list(self.testdata + "read.PI.timezone.2.xml")
-        TimeSeries.write_to_pi_file(self.testdata + "current.xml", 
-                                    obj, 
+        TimeSeries.write_to_pi_file(self.testdata + "current.xml",
+                                    obj,
                                     offset=2)
         target = file(self.testdata + "targetOutput.xml").read()
         current = file(self.testdata + "current.xml").read()
