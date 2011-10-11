@@ -351,3 +351,21 @@ class TimeSeriesOutput(TestCase):
         target = file(self.testdata + "targetOutput.xml").read()
         current = ''.join(stream.content)
         self.assertEquals(target, current)
+
+    def test022(self):
+        'TimeSeries.write_to_pi_file writes dict to stream'
+        stream = mock.Stream()
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        TimeSeries.write_to_pi_file(stream, obj, offset=0)
+        target = file(self.testdata + "targetOutput00.xml").read()
+        current = ''.join(stream.content)
+        self.assertEquals(target, current)
+
+    def test024(self):
+        'TimeSeries.write_to_pi_file writes dict to stream'
+        stream = mock.Stream()
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        TimeSeries.write_to_pi_file(stream, obj, offset=12)
+        target = file(self.testdata + "targetOutput12.xml").read()
+        current = ''.join(stream.content)
+        self.assertEquals(target, current)

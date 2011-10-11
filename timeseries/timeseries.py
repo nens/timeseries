@@ -182,6 +182,15 @@ class TimeSeries:
 
         convert an open input `stream` looking like a PI file into the
         result described in as_dict
+
+        not all entities are used.  in particular we do not do
+        anything with `startDate` and `endDate` (we assume data starts
+        and ends at the earliest and latest events) and `timeStep`.
+
+        for `timeStep` the problem is making choices.  do we support
+        anything else than "nonequidistant"?  in Java we don't.
+
+        events are read without storing the `flag`.
         """
 
         def getText(node):
