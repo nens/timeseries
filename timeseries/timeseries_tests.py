@@ -34,6 +34,8 @@ import pkg_resources
 from datetime import datetime
 from xml.dom.minidom import Document
 from xml.dom.minidom import Element
+from nens import mock
+import os
 
 
 class TimeSeriesTestSuite(TestCase):
@@ -306,12 +308,39 @@ class TimeSeriesInput(TestCase):
         self.assertEquals(2, len(obj))
 
 
-class TimeSeriesOutput:  # (TestCase): # temporarily disabling to check true coverage
+class TimeSeriesOutput(TestCase):
 
     def setUp(self):
         self.testdata = pkg_resources.resource_filename("timeseries", "testdata/")
+        if ('current.xml') in os.listdir(self.testdata):
+            os.unlink(self.testdata + "current.xml")
+
+    def tearDown(self):
+        if ('current.xml') in os.listdir(self.testdata):
+            os.unlink(self.testdata + "current.xml")
 
     def test000(self):
-        'TimeSeries.write_to_pi_file creates output'
+        'TimeSeries.write_to_pi_file writes list to new file'
         obj = TimeSeries.as_list(self.testdata + "read.PI.timezone.2.xml")
         TimeSeries.write_to_pi_file(self.testdata + "current.xml", obj, offset=2)
+        target = file(self.testdata + "targetOutput.xml").read()
+        current = file(self.testdata + "current.xml").read()
+        self.assertEquals(target, current)
+
+    def test010(self):
+        'TimeSeries.write_to_pi_file writes list to stream'
+        stream = mock.Stream()
+        obj = TimeSeries.as_list(self.testdata + "read.PI.timezone.2.xml")
+        TimeSeries.write_to_pi_file(stream, obj, offset=2)
+        target = file(self.testdata + "targetOutput.xml").read()
+        current = ''.join(stream.content)
+        self.assertEquals(target, current)
+
+    def test020(self):
+        'TimeSeries.write_to_pi_file writes dict to stream'
+        stream = mock.Stream()
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        TimeSeries.write_to_pi_file(stream, obj, offset=2)
+        target = file(self.testdata + "targetOutput.xml").read()
+        current = ''.join(stream.content)
+        self.assertEquals(target, current)

@@ -249,7 +249,8 @@ class TimeSeries:
         """convert input to collection of TimeSeries
         """
 
-        return cls.as_dict(input).values()
+        content = cls.as_dict(input)
+        return [content[key] for key in sorted(content.keys())]
 
     @classmethod
     def write_to_pi_file(cls, dest, data, offset=0):
@@ -266,6 +267,9 @@ class TimeSeries:
         property that goes into the pi file that is not owned by any
         of the TimeSeries objects.
         """
+
+        if (isinstance(data, dict)):
+            data = [data[key] for key in sorted(data.keys())]
 
         ## create xml document and add it its root element
         doc = Document()
@@ -290,7 +294,7 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         offset = timedelta(0, offset * 3600)
 
         ## add all series elements
-        for item in sorted(data):
+        for item in data:
             root.appendChild(doc.createTextNode('\n  '))
             root.appendChild(item.as_element(doc, offset=offset))
         root.appendChild(doc.createTextNode('\n'))
