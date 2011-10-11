@@ -12,6 +12,7 @@ long_description = '\n\n'.join([
 install_requires = [
     'pkginfo',
     'setuptools',
+    'nens',
     ],
 
 tests_require = [
