@@ -154,23 +154,23 @@ class TimeSeriesTestSuite(TestCase):
 class TestUtilityFunctions(TestCase):
     def test000(self):
         'str_to_datetime, utc'
-        self.assertEquals(datetime(2010, 04, 03), 
+        self.assertEquals(datetime(2010, 04, 03),
                           str_to_datetime("2010-04-03", "00:00:00"))
 
     def test002(self):
         'str_to_datetime, negative offset'
-        self.assertEquals(datetime(2010, 04, 03, 4), 
+        self.assertEquals(datetime(2010, 04, 03, 4),
                           str_to_datetime("2010-04-03", "00:00:00", -4))
 
     def test004(self):
         'str_to_datetime, positive offset'
-        self.assertEquals(datetime(2010, 04, 03, 11), 
+        self.assertEquals(datetime(2010, 04, 03, 11),
                           str_to_datetime("2010-04-03", "12:00:00", 1))
-        self.assertEquals(datetime(2012, 02, 29, 20), 
+        self.assertEquals(datetime(2012, 02, 29, 20),
                           str_to_datetime("2012-03-01", "00:00:00", 4))
 
 
-class TimeSeriesInputOutput(TestCase):
+class TimeSeriesInput(TestCase):
 
     def setUp(self):
         self.testdata = pkg_resources.resource_filename("timeseries", "testdata/")
@@ -239,3 +239,14 @@ class TimeSeriesInputOutput(TestCase):
         obj = TimeSeries.as_list(stream)
         self.assertTrue(isinstance(obj, list))
         self.assertEquals(2, len(obj))
+
+
+class TimeSeriesOutput(TestCase):
+
+    def setUp(self):
+        self.testdata = pkg_resources.resource_filename("timeseries", "testdata/")
+
+    def test000(self):
+        'TimeSeries.write_to_pi_file creates output'
+        obj = TimeSeries.as_list(self.testdata + "read.PI.timezone.2.xml")
+        TimeSeries.write_to_pi_file(self.testdata + "current.xml", obj, offset=2)

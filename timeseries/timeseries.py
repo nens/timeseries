@@ -31,6 +31,7 @@ import logging
 from datetime import datetime
 from datetime import timedelta
 from xml.dom.minidom import parse
+from xml.dom.minidom import Document
 import re
 
 logger = logging.getLogger(__name__)
@@ -55,6 +56,18 @@ def str_to_datetime(date, time, offset=0):
 
     return (datetime.strptime(date + 'T' + time, "%Y-%m-%dT%H:%M:%S") -
             timedelta(0, offset * 3600))
+
+
+def element_with_text(doc, tag, content='', attr={}):
+    """create a minidom element
+    """
+
+    result = doc.createElement(tag)
+    if content != '':
+        result.appendChild(doc.createTextNode(content))
+    for key, value in attr.items():
+        result.setAttribute(key, str(value))
+    return result
 
 
 class TimeSeries:
@@ -84,26 +97,26 @@ class TimeSeries:
     def __init__(self, events={}, **kwargs):
         ## one of: instantaneous, continuous.  we usually work with
         ## instantaneous
-        self.type = kwargs.get('type')
+        self.type = kwargs.get('type', '')
         ## these are used to identify the TimeSeries in a collection
         self.location_id = kwargs.get('location_id')
         self.parameter_id = kwargs.get('parameter_id')
         ## datetime.timedelta or None (for nonequidistant)
-        self.time_step = kwargs.get('time_step')
+        self.time_step = kwargs.get('time_step', '')
         ## what to store in equidistant timeseries in case a value is
         ## missing.
-        self.miss_val = kwargs.get('miss_val')
+        self.miss_val = kwargs.get('miss_val', '')
         ## don't ask me why wldelft wants this one
-        self.station_name = kwargs.get('station_name')
+        self.station_name = kwargs.get('station_name', '')
         ## geographic coordinates
-        self.lat = kwargs.get('lat')
-        self.lon = kwargs.get('lon')
+        self.lat = kwargs.get('lat', '')
+        self.lon = kwargs.get('lon', '')
         ## Rijksdriehoekscoördinaten
-        self.x = kwargs.get('x')
-        self.y = kwargs.get('y')
-        self.z = kwargs.get('z')
+        self.x = kwargs.get('x', '')
+        self.y = kwargs.get('y', '')
+        self.z = kwargs.get('z', '')
         ## a string
-        self.units = kwargs.get('units')
+        self.units = kwargs.get('units', '')
         ## key: timestamp, value: (double, flag, comment)
         self.events = dict(events)  # associate a timestamp to a
                                     # value, let's make a copy of it
@@ -239,7 +252,7 @@ class TimeSeries:
         return cls.as_dict(input).values()
 
     @classmethod
-    def write_to_pi_file(cls, dest, data):
+    def write_to_pi_file(cls, dest, data, offset=0):
         """write TimeSeries to a PI-format file.
 
         `data` is a collection of TimeSeries objects, anything like
@@ -248,6 +261,97 @@ class TimeSeries:
 
         `dest` is the complete path of the file to be written.  or it
         is a stream to which we can write.
+
+        `offset`, is a numeric offset from UTC.  it is the only
+        property that goes into the pi file that is not owned by any
+        of the TimeSeries objects.
         """
 
-        raise RuntimeError("not implemented yet")
+        ## create xml document and add it its root element
+        doc = Document()
+
+        root = doc.createElement("TimeSeries")
+        doc.appendChild(root)
+
+        ## add references to internet resources for schema checking
+        for key, value in {
+            'xsi:schemaLocation': "http://www.wldelft.nl/fews/PI \
+http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
+            'version': "1.2",
+            'xmlns': "http://www.wldelft.nl/fews/PI",
+            'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance",
+            }.items():
+            root.setAttribute(key, value)
+
+        ## add single timeZone element
+        root.appendChild(doc.createTextNode('\n  '))
+        root.appendChild(element_with_text(doc, 'timeZone', '%0.2f' % offset))
+
+        offset = timedelta(0, offset * 3600)
+
+        ## add all series elements
+        for item in sorted(data):
+            root.appendChild(doc.createTextNode('\n  '))
+            root.appendChild(item.as_element(doc, offset=offset))
+        root.appendChild(doc.createTextNode('\n'))
+
+        ## if dest is a name of a file, open it for writing and
+        ## remember we should close it before returning.
+        if (isinstance(dest, str)):
+            writer = file(dest, "w")
+        else:
+            writer = dest
+
+        ## write document to open stream
+        doc.writexml(writer, encoding="UTF-8")
+
+        ## if we created the writer here, we also need to close it,
+        ## otherwise it's the caller's responsibility to do so.
+        if (writer != dest):
+            writer.close()
+
+    def as_element(self, doc, addindent="  ", newl="\n", offset=timedelta()):
+        """create minidom object representing self
+        """
+
+        result = doc.createElement("series")
+
+        header = doc.createElement("header")
+        result.appendChild(doc.createTextNode(newl + addindent * 2))
+        result.appendChild(header)
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+
+        header.appendChild(element_with_text(doc, 'type', self.type))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'locationId', self.location_id))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'parameterId', self.parameter_id))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'timeStep', attr={
+                    'unit': 'nonequidistant'}))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'startDate', attr={
+                    'date': (self.get_start_date() + offset).strftime("%Y-%m-%d"),
+                    'time': (self.get_start_date() + offset).strftime("%T")}))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'endDate', attr={
+                    'date': (self.get_end_date() + offset).strftime("%Y-%m-%d"),
+                    'time': (self.get_end_date() + offset).strftime("%T")}))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'missVal', self.miss_val))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'stationName', self.station_name))
+        header.appendChild(doc.createTextNode(newl + addindent * 3))
+        header.appendChild(element_with_text(doc, 'units', self.units))
+        header.appendChild(doc.createTextNode(newl + addindent * 2))
+
+        for key in sorted(self.events.keys()):
+            result.appendChild(doc.createTextNode(newl + addindent * 2))
+            result.appendChild(element_with_text(doc, 'event', attr={
+                        'date': (key + offset).strftime("%Y-%m-%d"),
+                        'time': (key + offset).strftime("%T"),
+                        'value': self.events[key],
+                        }))
+
+        result.appendChild(doc.createTextNode(newl + addindent))
+        return result
