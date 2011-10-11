@@ -369,3 +369,60 @@ class TimeSeriesOutput(TestCase):
         target = file(self.testdata + "targetOutput12.xml").read()
         current = ''.join(stream.content)
         self.assertEquals(target, current)
+
+
+class TimeSeriesBinaryOperations(TestCase):
+    def setUp(self):
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        d1 = datetime(1979, 3, 15, 9, 35)
+        d3 = datetime(1979, 4, 12, 9, 35)
+        d2 = datetime(1979, 5, 15, 9, 35)
+        obj.events[d1] = 1.23
+        obj.events[d3] = 0.23
+        obj.events[d2] = -3.01
+
+        self.a = obj
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        obj.events[d1] = 33.3
+        obj.events[d2] = -0.25
+
+        self.b = obj
+
+    def test000(self):
+        'timeseries + 0 gives same timeseries'
+
+        current = self.a + 0
+
+        for attrib in self.a.__dict__:
+            self.assertEquals(current.__dict__[attrib], 
+                              self.a.__dict__[attrib])
+
+    def test010(self):
+        'timeseries + 0 gives same timeseries'
+
+        current = self.a + 1
+
+        for attrib in self.a.__dict__:
+            if attrib == 'events':
+                continue
+            self.assertEquals(self.a.__dict__[attrib], 
+                              current.__dict__[attrib])
+
+        for key in self.a.events:
+            self.assertEquals(self.a[key] + 1, current[key])
+
+    def test020(self):
+        'timeseries + 1 gives same timeseries'
+
+        current = self.a + self.b
+
+        for attrib in self.a.__dict__:
+            if attrib == 'events':
+                continue
+            self.assertEquals(self.a.__dict__[attrib], 
+                              current.__dict__[attrib])
+
+        for key in self.a.events:
+            self.assertEquals(self.a[key] + self.b.get(key, 0), 
+                              current[key])

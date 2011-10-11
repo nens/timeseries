@@ -375,3 +375,34 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
 
         result.appendChild(doc.createTextNode(newl + addindent))
         return result
+
+    def __add__(self, other):
+        """return new TimeSeries, clone of `self`, altering event
+        values
+        """
+
+        result = TimeSeries(type=self.type,
+                            location_id=self.location_id,
+                            parameter_id=self.parameter_id,
+                            time_step=self.time_step,
+                            miss_val=self.miss_val,
+                            station_name=self.station_name,
+                            lat=self.lat,
+                            lon=self.lon,
+                            x=self.x,
+                            y=self.y,
+                            z=self.z,
+                            units=self.units)
+        keys = set(self.keys())
+        if isinstance(other, TimeSeries):
+            keys.union(other.keys())
+            for key in keys:
+                result[key] = self.get(key, 0) + other.get(key, 0)
+        else:
+            for key in keys:
+                result[key] = self.get(key, 0) + other
+
+        return result
+
+    def keys(self):
+        return self.events.keys()
