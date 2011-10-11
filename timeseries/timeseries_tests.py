@@ -153,6 +153,37 @@ class TimeSeriesTestSuite(TestCase):
         ## returns default value if event is not there
         self.assertEquals(None, obj.get(d2))
 
+    def test_200(self):
+        'represent empty TimeSeries as Element'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        doc = Document()
+        current = obj.as_element(doc)
+        self.assertTrue(isinstance(current, Element))
+        self.assertEquals('series', current.tagName)
+        childElements = [i
+                         for i in current.childNodes
+                         if i.nodeType != i.TEXT_NODE]
+        self.assertEquals(1, len(childElements))
+        self.assertEquals(['header'], [i.tagName for i in childElements])
+        self.assertEquals({}, dict(current.attributes))
+
+    def test_201(self):
+        'represent TimeSeries with two events as Element'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        obj[datetime(1980, 11, 23, 19, 35)] = -1
+        doc = Document()
+        current = obj.as_element(doc)
+        self.assertTrue(isinstance(current, Element))
+        self.assertEquals('series', current.tagName)
+        childElements = [i
+                         for i in current.childNodes
+                         if i.nodeType != i.TEXT_NODE]
+        self.assertEquals(2, len(childElements))
+        self.assertEquals(['header', 'event'], [i.tagName for i in childElements])
+        self.assertEquals({}, dict(current.attributes))
+
 
 class TestUtilityFunctions(TestCase):
     def test000(self):
