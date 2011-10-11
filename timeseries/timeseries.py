@@ -327,24 +327,31 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
 
         header.appendChild(element_with_text(doc, 'type', self.type))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'locationId', self.location_id))
+        header.appendChild(element_with_text(doc, 'locationId', 
+                                             self.location_id))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'parameterId', self.parameter_id))
+        header.appendChild(element_with_text(doc, 'parameterId', 
+                                             self.parameter_id))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(element_with_text(doc, 'timeStep', attr={
                     'unit': 'nonequidistant'}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(element_with_text(doc, 'startDate', attr={
-                    'date': (self.get_start_date() + offset).strftime("%Y-%m-%d"),
-                    'time': (self.get_start_date() + offset).strftime("%T")}))
+                    'date': (self.get_start_date() + 
+                             offset).strftime("%Y-%m-%d"),
+                    'time': (self.get_start_date() + 
+                             offset).strftime("%T")}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(element_with_text(doc, 'endDate', attr={
-                    'date': (self.get_end_date() + offset).strftime("%Y-%m-%d"),
-                    'time': (self.get_end_date() + offset).strftime("%T")}))
+                    'date': (self.get_end_date() + 
+                             offset).strftime("%Y-%m-%d"),
+                    'time': (self.get_end_date() + 
+                             offset).strftime("%T")}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(element_with_text(doc, 'missVal', self.miss_val))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'stationName', self.station_name))
+        header.appendChild(element_with_text(doc, 'stationName', 
+                                             self.station_name))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(element_with_text(doc, 'units', self.units))
         header.appendChild(doc.createTextNode(newl + addindent * 2))

@@ -150,7 +150,8 @@ class TimeSeriesTestSuite(TestCase):
         d1 = datetime(1979, 3, 15, 9, 35)
         obj.add_value(d1, 1.23)  # executing __setitem__
         ## finds values that are there
-        [self.assertEquals(obj.events[d], obj.get(d)) for d in obj.events.keys()]
+        [self.assertEquals(obj.events[d], obj.get(d)) 
+         for d in obj.events.keys()]
         d2 = datetime(1979, 5, 15, 9, 35)
         ## returns default value if event is not there
         self.assertEquals(None, obj.get(d2))
@@ -183,7 +184,8 @@ class TimeSeriesTestSuite(TestCase):
                          for i in current.childNodes
                          if i.nodeType != i.TEXT_NODE]
         self.assertEquals(2, len(childElements))
-        self.assertEquals(['header', 'event'], [i.tagName for i in childElements])
+        self.assertEquals(['header', 'event'], 
+                          [i.tagName for i in childElements])
         self.assertEquals({}, dict(current.attributes))
 
 
@@ -240,7 +242,8 @@ class TestUtilityFunctions(TestCase):
 class TimeSeriesInput(TestCase):
 
     def setUp(self):
-        self.testdata = pkg_resources.resource_filename("timeseries", "testdata/")
+        self.testdata = pkg_resources.resource_filename(
+            "timeseries", "testdata/")
 
     def test000(self):
         'TimeSeries.as_dict accepts file name, returns dictionary'
@@ -260,7 +263,8 @@ class TimeSeriesInput(TestCase):
         self.assertEquals(None, TimeSeries.as_dict(set()))
 
     def test010(self):
-        'result of TimeSeries.as_dict is indexed on locationId parameterId 2-tuples'
+        '''result of TimeSeries.as_dict is indexed on locationId
+        parameterId 2-tuples'''
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         self.assertEquals(set([("600", "P1201"), ("600", "P2504")]),
                           set(obj.keys()))
@@ -311,7 +315,8 @@ class TimeSeriesInput(TestCase):
 class TimeSeriesOutput(TestCase):
 
     def setUp(self):
-        self.testdata = pkg_resources.resource_filename("timeseries", "testdata/")
+        self.testdata = pkg_resources.resource_filename(
+            "timeseries", "testdata/")
         if ('current.xml') in os.listdir(self.testdata):
             os.unlink(self.testdata + "current.xml")
 
@@ -322,7 +327,9 @@ class TimeSeriesOutput(TestCase):
     def test000(self):
         'TimeSeries.write_to_pi_file writes list to new file'
         obj = TimeSeries.as_list(self.testdata + "read.PI.timezone.2.xml")
-        TimeSeries.write_to_pi_file(self.testdata + "current.xml", obj, offset=2)
+        TimeSeries.write_to_pi_file(self.testdata + "current.xml", 
+                                    obj, 
+                                    offset=2)
         target = file(self.testdata + "targetOutput.xml").read()
         current = file(self.testdata + "current.xml").read()
         self.assertEquals(target, current)
