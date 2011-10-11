@@ -1,6 +1,29 @@
 Code documentation
 ==================
 
-.. automodule:: timeseries.something
+Module timeseries
+-----------------
+
+.. automodule:: timeseries.timeseries
    :members:
+
+Module timeseries_tests
+-----------------------
+
+.. automodule:: timeseries.timeseries_tests
+   :members:
+
+Module timeseriesstub
+---------------------
+
+.. automodule:: timeseries.timeseriesstub
+   :members:
+
+
+Module timeseriesstub_tests
+---------------------------
+
+.. automodule:: timeseries.timeseriesstub_tests
+   :members:
+
 
