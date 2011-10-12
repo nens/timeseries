@@ -278,8 +278,10 @@ class TimeseriesStub(timeseries.TimeSeries):
     A time series is a sequence of values ordered by date and time.
 
     Instance variables:
-    * initial_value -- value on any date before the first date
-    * events -- list of (date and time, value) tuples ordered by date and time
+     *initial_value* 
+      value on any date before the first date
+     *events* 
+      list of (date and time, value) tuples ordered by date and time
 
     """
     def __init__(self, *events):
@@ -378,11 +380,11 @@ class SparseTimeseriesStub:
     where each event is the day after the first event.
 
     Instance variables:
-      * first_date *
+      *first_date*
         date of the first event
-      * previous_date *
+      *previous_date*
         date of the last event that has been added
-      * values *
+      *values*
         list of values
 
     """
@@ -495,11 +497,11 @@ class TimeseriesRestrictedStub(TimeseriesStub):
     A time series is a sequence of values ordered by date and time.
 
     Instance variables:
-      * timeseries *
+      *timeseries*
         object that supports an events method
-      * start_date *
+      *start_date*
         date of the first day of the time series
-      * end_date*
+      *end_date*
         date of the day *after* the last day of the time series
 
     """
