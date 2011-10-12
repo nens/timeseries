@@ -68,9 +68,9 @@ def str_to_datetime(date, time, offset=0):
        str, in HH:MM:SS format
      *offset*
        numeric, amount of hours expressing the offset from UTC of the
-       time zone of the input data.  optional, defaults to 0.
+       time zone of the input data.
 
-    *return*
+    returns:
        datetime object
 
     >>> str_to_datetime('2000-01-01', '00:00:00', 0)
@@ -330,7 +330,7 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         ## add all series elements
         for item in data:
             root.appendChild(doc.createTextNode('\n  '))
-            root.appendChild(item.as_element(doc, offset=offset))
+            root.appendChild(item._as_element(doc, offset=offset))
         root.appendChild(doc.createTextNode('\n'))
 
         ## if dest is a name of a file, open it for writing and
@@ -348,8 +348,10 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         if (writer != dest):
             writer.close()
 
-    def as_element(self, doc, addindent="  ", newl="\n", offset=timedelta()):
+    def _as_element(self, doc, addindent="  ", newl="\n", offset=timedelta()):
         """create minidom object representing self
+
+        private method
         """
 
         result = doc.createElement("series")
