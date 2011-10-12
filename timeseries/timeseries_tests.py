@@ -395,7 +395,7 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a + 0
 
         for attrib in self.a.__dict__:
-            self.assertEquals(current.__dict__[attrib], 
+            self.assertEquals(current.__dict__[attrib],
                               self.a.__dict__[attrib])
 
     def test010(self):
@@ -406,7 +406,7 @@ class TimeSeriesBinaryOperations(TestCase):
         for attrib in self.a.__dict__:
             if attrib == 'events':
                 continue
-            self.assertEquals(self.a.__dict__[attrib], 
+            self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
         for key in self.a.events:
@@ -420,9 +420,9 @@ class TimeSeriesBinaryOperations(TestCase):
         for attrib in self.a.__dict__:
             if attrib == 'events':
                 continue
-            self.assertEquals(self.a.__dict__[attrib], 
+            self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
         for key in self.a.events:
-            self.assertEquals(self.a[key] + self.b.get(key, 0), 
+            self.assertEquals(self.a[key] + self.b.get(key, 0),
                               current[key])

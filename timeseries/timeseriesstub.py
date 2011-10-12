@@ -278,9 +278,9 @@ class TimeseriesStub(timeseries.TimeSeries):
     A time series is a sequence of values ordered by date and time.
 
     Instance variables:
-     *initial_value* 
+     *initial_value*
       value on any date before the first date
-     *events* 
+     *events*
       list of (date and time, value) tuples ordered by date and time
 
     """
