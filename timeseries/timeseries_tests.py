@@ -29,7 +29,7 @@
 from unittest import TestCase
 from timeseries import TimeSeries
 from timeseries import str_to_datetime
-from timeseries import element_with_text
+from timeseries import _element_with_text
 import pkg_resources
 from datetime import datetime
 from xml.dom.minidom import Document
@@ -208,30 +208,30 @@ class TestUtilityFunctions(TestCase):
                           str_to_datetime("2012-03-01", "00:00:00", 4))
 
     def test100(self):
-        'element_with_text without text, without attributes'
+        '_element_with_text without text, without attributes'
 
         doc = Document()
-        obj = element_with_text(doc, 'test')
+        obj = _element_with_text(doc, 'test')
         self.assertTrue(isinstance(obj, Element))
         self.assertEquals('test', obj.tagName)
         self.assertEquals([], obj.childNodes)
         self.assertEquals({}, dict(obj.attributes))
 
     def test101(self):
-        'element_with_text without text, with attributes'
+        '_element_with_text without text, with attributes'
 
         doc = Document()
-        obj = element_with_text(doc, 'test', attr={'a': 2})
+        obj = _element_with_text(doc, 'test', attr={'a': 2})
         self.assertTrue(isinstance(obj, Element))
         self.assertEquals('test', obj.tagName)
         self.assertEquals([], obj.childNodes)
         self.assertEquals('2', obj.getAttribute('a'))
 
     def test102(self):
-        'element_with_text with text, without attributes'
+        '_element_with_text with text, without attributes'
 
         doc = Document()
-        obj = element_with_text(doc, 'test', "attr={'a': 2}")
+        obj = _element_with_text(doc, 'test', "attr={'a': 2}")
         self.assertTrue(isinstance(obj, Element))
         self.assertEquals('test', obj.tagName)
         self.assertEquals(1, len(obj.childNodes))

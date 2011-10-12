@@ -83,7 +83,7 @@ def str_to_datetime(date, time, offset=0):
             timedelta(0, offset * 3600))
 
 
-def element_with_text(doc, tag, content='', attr={}):
+def _element_with_text(doc, tag, content='', attr={}):
     """create a minidom element
     """
 
@@ -185,19 +185,19 @@ class TimeSeries:
         return self.__getitem__(tstamp)
 
     def __setitem__(self, key, value):
-        """behave as a dictionary
+        """behave as a dictionary (content is series events)
         """
 
         self.events[key] = value
 
     def __getitem__(self, key):
-        """behave as a dictionary
+        """behave as a dictionary (content is series events)
         """
 
         return self.events[key]
 
     def get(self, key, default=None):
-        """behave as a dictionary
+        """behave as a dictionary (content is series events)
         """
 
         return self.events.get(key, default)
@@ -324,7 +324,7 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
 
         ## add single timeZone element
         root.appendChild(doc.createTextNode('\n  '))
-        root.appendChild(element_with_text(doc, 'timeZone', '%0.2f' % offset))
+        root.appendChild(_element_with_text(doc, 'timeZone', '%0.2f' % offset))
 
         offset = timedelta(0, offset * 3600)
 
@@ -362,40 +362,40 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         result.appendChild(header)
         header.appendChild(doc.createTextNode(newl + addindent * 3))
 
-        header.appendChild(element_with_text(doc, 'type', self.type))
+        header.appendChild(_element_with_text(doc, 'type', self.type))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'locationId',
+        header.appendChild(_element_with_text(doc, 'locationId',
                                              self.location_id))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'parameterId',
+        header.appendChild(_element_with_text(doc, 'parameterId',
                                              self.parameter_id))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'timeStep', attr={
+        header.appendChild(_element_with_text(doc, 'timeStep', attr={
                     'unit': 'nonequidistant'}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'startDate', attr={
+        header.appendChild(_element_with_text(doc, 'startDate', attr={
                     'date': (self.get_start_date() +
                              offset).strftime("%Y-%m-%d"),
                     'time': (self.get_start_date() +
                              offset).strftime("%T")}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'endDate', attr={
+        header.appendChild(_element_with_text(doc, 'endDate', attr={
                     'date': (self.get_end_date() +
                              offset).strftime("%Y-%m-%d"),
                     'time': (self.get_end_date() +
                              offset).strftime("%T")}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'missVal', self.miss_val))
+        header.appendChild(_element_with_text(doc, 'missVal', self.miss_val))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'stationName',
+        header.appendChild(_element_with_text(doc, 'stationName',
                                              self.station_name))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(element_with_text(doc, 'units', self.units))
+        header.appendChild(_element_with_text(doc, 'units', self.units))
         header.appendChild(doc.createTextNode(newl + addindent * 2))
 
         for key in sorted(self.events.keys()):
             result.appendChild(doc.createTextNode(newl + addindent * 2))
-            result.appendChild(element_with_text(doc, 'event', attr={
+            result.appendChild(_element_with_text(doc, 'event', attr={
                         'date': (key + offset).strftime("%Y-%m-%d"),
                         'time': (key + offset).strftime("%T"),
                         'value': self.events[key],
@@ -406,7 +406,30 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
 
     def __add__(self, other):
         """return new TimeSeries, clone of `self`, altering event
-        values
+        values.
+
+        *other* can be a constant or a TimeSeries object.
+
+        if *other* is a TimeSeries and contains timestamps that are
+        not in *self*, they are added to the resulting timeseries.  if
+        either *self* or *other* contain a timestamp that is not
+        present in both objects, the missing value is assumed to be 0.
+        """
+
+        result = self.clone()
+        keys = set(self.keys())
+        if isinstance(other, TimeSeries):
+            keys.union(other.keys())
+            for key in keys:
+                result[key] = self.get(key, 0) + other.get(key, 0)
+        else:
+            for key in keys:
+                result[key] = self.get(key, 0) + other
+
+        return result
+
+    def clone(self, with_events=False):
+        """return a copy of self
         """
 
         result = TimeSeries(type=self.type,
@@ -421,16 +444,11 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                             y=self.y,
                             z=self.z,
                             units=self.units)
-        keys = set(self.keys())
-        if isinstance(other, TimeSeries):
-            keys.union(other.keys())
-            for key in keys:
-                result[key] = self.get(key, 0) + other.get(key, 0)
-        else:
-            for key in keys:
-                result[key] = self.get(key, 0) + other
-
+        if with_events:
+            result.events = dict(self.events)
         return result
 
     def keys(self):
+        """behave as a dictionary (content is series events)
+        """
         return self.events.keys()
