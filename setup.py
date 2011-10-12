@@ -20,7 +20,7 @@ tests_require = [
 
 setup(name='timeseries',
       version=version,
-      description="Generic timeseries operations, like add, subtract.",
+      description="Package to implement time series and generic operations on time series.",
       long_description=long_description,
       # Get strings from http://www.python.org/pypi?%3Aaction=list_classifiers
       classifiers=[],
