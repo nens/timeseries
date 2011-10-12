@@ -107,7 +107,7 @@ class TimeSeries:
     code (where we don't even implement a complete own class, we just
     use the wldelft definition and make it more usable) and in R.
 
-    :special-members:
+    :special-members: __add__, __setitem__, __getitem__
     """
 
     def get_events(self, start_date=None, end_date=None):
