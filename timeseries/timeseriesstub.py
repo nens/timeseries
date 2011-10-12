@@ -231,8 +231,8 @@ def daily_events(events, default_value=0):
     missing in between two successive events, this function fills in the
     missing dates with the given default value.
 
-    Parameter
-      * events *
+    Parameters:
+      *events*
         sequence of (date or datetime, value) pairs ordered by date or datetime
 
     """
@@ -254,8 +254,8 @@ def daily_sticky_events(events):
     dates are missing in between two successive events, this function fills in
     the missing dates with the value on the latest known date.
 
-    Parameter
-      * events *
+    Parameters:
+      *events*
         sequence of (date or datetime, value) pairs ordered by date or datetime
 
     """
@@ -516,9 +516,9 @@ class TimeseriesRestrictedStub(TimeseriesStub):
         """Return a generator to iterate over the requested events.
 
         Parameters:
-          * start_date *
+          *start_date*
             date of the earliest event to iterate over
-          * end_data *
+          *end_data*
             date of the date after the latest event to iterate over
         """
         events = self.timeseries.events(start_date=self.start_date,
@@ -539,8 +539,8 @@ class TimeseriesRestrictedStub(TimeseriesStub):
 def enumerate_events(*timeseries_list):
     """Yield the events for all the days of the given time series.
 
-    Parameter:
-      * timeseries_list *
+    Parameters:
+      *timeseries_list*
         list of time series
 
     Each of the given time series should specify values for possibly
@@ -589,8 +589,8 @@ def enumerate_events(*timeseries_list):
 def enumerate_dict_events(timeseries_dict):
     """Yield the events for all the days of the given time series.
 
-    Parameter:
-      * timeseries_dict *
+    Parameters:
+      *timeseries_dict*
         dictonary with time series (including nested timeseries, up to first
         level)
 
@@ -757,8 +757,9 @@ def map_timeseries(timeseries, map_function):
 def split_timeseries(timeseries):
     """Return the 2-tuple of non-positive and non-negative time series.
 
-    Paramaters:
-    * timeseries -- time series that contains the events for the new 2 -tuple
+    Parameters:
+      *timeseries*
+        time series that contains the events for the new 2 -tuple
 
     This function creates a 2-tuple of TimeseriesStub, where the first
     element contains all non-positive events (of the given time

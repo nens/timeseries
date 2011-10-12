@@ -60,6 +60,23 @@ pythonify = Pythonifier()
 
 def str_to_datetime(date, time, offset=0):
     """convert date/time/offset to datetime
+
+    parameters:
+     *date*
+       str, in YYYY-mm-dd format
+     *time*
+       str, in HH:MM:SS format
+     *offset*
+       numeric, amount of hours expressing the offset from UTC of the
+       time zone of the input data.  optional, defaults to 0.
+
+    *return*
+       datetime object
+
+    >>> str_to_datetime('2000-01-01', '00:00:00', 0)
+    datetime.datetime(2000, 1, 1, 0, 0)
+    >>> str_to_datetime('2000-01-01', '00:00:00', 1)
+    datetime.datetime(1999, 12, 31, 23, 0)
     """
 
     return (datetime.strptime(date + 'T' + time, "%Y-%m-%dT%H:%M:%S") -
