@@ -43,10 +43,10 @@ class Pythonifier(object):
     given a camelCaseString, return a python_style_string.
 
     >>> pythonify = Pythonifier()
-    >>> pythonify("camelCaseString")
-    "camel_case_string"
-    >>> pythonify("pythonStyleString")
-    "python_style_string"
+    >>> pythonify('camelCaseString')
+    'camel_case_string'
+    >>> pythonify('pythonStyleString')
+    'python_style_string'
     """
 
     def __init__(self):
