@@ -38,7 +38,15 @@ logger = logging.getLogger(__name__)
 
 
 class Pythonifier(object):
-    """get a camelCaseString, return a python_style_string
+    """functor class.  it has one global instance, called `pythonify`.
+
+    given a camelCaseString, return a python_style_string.
+
+    >>> pythonify = Pythonifier()
+    >>> pythonify("camelCaseString")
+    "camel_case_string"
+    >>> pythonify("pythonStyleString")
+    "python_style_string"
     """
 
     def __init__(self):
