@@ -161,7 +161,7 @@ class TimeSeriesTestSuite(TestCase):
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
         doc = Document()
-        current = obj.as_element(doc)
+        current = obj._as_element(doc)
         self.assertTrue(isinstance(current, Element))
         self.assertEquals('series', current.tagName)
         childElements = [i
@@ -177,7 +177,7 @@ class TimeSeriesTestSuite(TestCase):
         obj = TimeSeries(location_id='loc', parameter_id='par')
         obj[datetime(1980, 11, 23, 19, 35)] = -1
         doc = Document()
-        current = obj.as_element(doc)
+        current = obj._as_element(doc)
         self.assertTrue(isinstance(current, Element))
         self.assertEquals('series', current.tagName)
         childElements = [i
