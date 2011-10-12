@@ -106,6 +106,8 @@ class TimeSeries:
     on the other hand, we already use that same definition in our Java
     code (where we don't even implement a complete own class, we just
     use the wldelft definition and make it more usable) and in R.
+
+    .. automethod:: __add__, __getitem__, __setitem__
     """
 
     def get_events(self, start_date=None, end_date=None):
