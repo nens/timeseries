@@ -6,6 +6,7 @@ Module timeseries
 
 .. automodule:: timeseries.timeseries
    :members:
+   :special-members: __add__, __getitem__, __setitem__
 
 Module timeseries_tests
 -----------------------
