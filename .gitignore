@@ -23,6 +23,7 @@ pip-log.txt
 .coverage
 .tox
 nosetests.xml
+coverage.xml
 
 #Mr Developer
 .mr.developer.cfg
