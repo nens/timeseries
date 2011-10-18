@@ -591,10 +591,11 @@ def enumerate_events(*timeseries_list):
 def enumerate_dict_events(timeseries_dict):
     """Yield the events for all the days of the given time series.
 
-    Parameters:
+    Parameter:
       *timeseries_dict*
-        dictonary with time series (including nested timeseries, up to first
-        level)
+        dictionary where a value is
+          - a timeseries or
+          - a dictionary where **each** value is a timeseries
 
     Each of the given time series should specify values for possibly
     non-continous ranges of dates. For each day present in a time series, this
@@ -667,6 +668,24 @@ def enumerate_dict_events(timeseries_dict):
 
 
 def enumerate_merged_events(timeseries_a, timeseries_b):
+    """Yields all triples *(date, value_a, value_b)* for the given time series.
+
+    In *(date, value_a, value_b)*, *value_a* is the value of the event at
+    *date* in *timeseries_a* and *value_b* the value of the event at *date* in
+    *timeseries_b*.
+
+    Note that the given time series can have different date ranges. Therefore
+    it is possible one time series specifies a value at a date outside the date
+    range of the other time series. In that case, this method does return a
+    triple for that date and it uses the value 0 for the missing value.
+
+    Parameters:
+      *timeseries_a*
+        object that supports a method events() to yield events
+      *timeseries_b*
+        object that supports a method events() to yield events
+
+    """
     events_a = timeseries_a.events()
     events_b = timeseries_b.events()
     event_a = next(events_a, None)
