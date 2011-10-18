@@ -33,6 +33,7 @@ from datetime import timedelta
 from xml.dom.minidom import parse
 from xml.dom.minidom import Document
 import re
+import operator
 
 logger = logging.getLogger(__name__)
 
@@ -404,11 +405,18 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         result.appendChild(doc.createTextNode(newl + addindent))
         return result
 
-    def __mul__(self, other):
-        """return new TimeSeries, clone of `self`, altering event
-        values.
+    def __binop(self, other, op, null):
+        """return self`op`other
+
+        return clone of `self`, with altered events
 
         *other* can be a constant or a TimeSeries object.
+
+        if *other* is a TimeSeries and contains timestamps that are
+        not in *self*, they are added to the resulting timeseries.  if
+        either *self* or *other* contain a timestamp that is not
+        present in both objects, the missing value is assumed to be
+        the specified null value.
         """
 
         result = self.clone()
@@ -417,38 +425,52 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
             keys.union(other.keys())
             for key in keys:
                 try:
-                    result[key] = self.get(key) * other.get(key)
+                    result[key] = op(self.get(key, null), other.get(key, null))
                 except:
                     pass
         else:
             for key in keys:
-                result[key] = self.get(key) * other
+                result[key] = op(self.get(key), other)
 
         return result
-        
-    def __add__(self, other):
-        """return new TimeSeries, clone of `self`, altering event
-        values.
 
-        *other* can be a constant or a TimeSeries object.
-
-        if *other* is a TimeSeries and contains timestamps that are
-        not in *self*, they are added to the resulting timeseries.  if
-        either *self* or *other* contain a timestamp that is not
-        present in both objects, the missing value is assumed to be 0.
+    def __mul__(self, other):
+        """implement multiplication
         """
 
-        result = self.clone()
-        keys = set(self.keys())
-        if isinstance(other, TimeSeries):
-            keys.union(other.keys())
-            for key in keys:
-                result[key] = self.get(key, 0) + other.get(key, 0)
-        else:
-            for key in keys:
-                result[key] = self.get(key, 0) + other
+        return self.__binop(other, operator.mul, None)
 
-        return result
+    def __add__(self, other):
+        """implement addition
+        """
+
+        return self.__binop(other, operator.add, 0)
+
+    def __radd__(self, other):
+        """addition is commutative
+        """
+
+        return self.__add__(other)
+
+    def __sub__(self, other):
+        """implement subtraction
+        """
+
+        return self.__binop(other, operator.sub, 0)
+
+    def __rsub__(self, other):
+        """subtraction is not commutative
+
+        `a - b` is same as `(-b) + a`
+        """
+
+        return (-1 * self).__add__(other)
+
+    def __rmul__(self, other):
+        """multiplication is commutative
+        """
+
+        return self.__mul__(other)
 
     def clone(self, with_events=False):
         """return a copy of self

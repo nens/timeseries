@@ -433,6 +433,20 @@ class TimeSeriesBinaryOperations(TestCase):
         for key in self.a.events:
             self.assertEquals(self.a[key] + 1, current[key])
 
+    def test112(self):
+        '1 + timeseries gives same timestamps with other value'
+
+        current = 1 + self.a
+
+        for attrib in self.a.__dict__:
+            if attrib == 'events':
+                continue
+            self.assertEquals(self.a.__dict__[attrib],
+                              current.__dict__[attrib])
+
+        for key in self.a.events:
+            self.assertEquals(self.a[key] + 1, current[key])
+
     def test120(self):
         'timeseries + other gives union of keys'
 
@@ -448,6 +462,58 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get(key, 0) + self.b.get(key, 0),
                               current[key])
 
+    def test130(self):
+        'timeseries - 0 gives same timeseries'
+
+        current = self.a - 0
+
+        for attrib in self.a.__dict__:
+            self.assertEquals(current.__dict__[attrib],
+                              self.a.__dict__[attrib])
+
+    def test140(self):
+        'timeseries - 1 gives same timestamps with other value'
+
+        current = self.a - 1
+
+        for attrib in self.a.__dict__:
+            if attrib == 'events':
+                continue
+            self.assertEquals(self.a.__dict__[attrib],
+                              current.__dict__[attrib])
+
+        for key in self.a.events:
+            self.assertEquals(self.a[key] - 1, current[key])
+
+    def test142(self):
+        '1 - timeseries gives same timestamps with other value'
+
+        current = 1 - self.a
+
+        for attrib in self.a.__dict__:
+            if attrib == 'events':
+                continue
+            self.assertEquals(self.a.__dict__[attrib],
+                              current.__dict__[attrib])
+
+        for key in self.a.events:
+            self.assertEquals(1 - self.a[key], current[key])
+
+    def test150(self):
+        'timeseries - other gives union of keys'
+
+        current = self.a - self.b
+
+        for attrib in self.a.__dict__:
+            if attrib == 'events':
+                continue
+            self.assertEquals(self.a.__dict__[attrib],
+                              current.__dict__[attrib])
+
+        for key in current.events:
+            self.assertEquals(self.a.get(key, 0) - self.b.get(key, 0),
+                              current[key])
+
     def test200(self):
         'timeseries * 1 gives same timeseries'
 
@@ -461,6 +527,20 @@ class TimeSeriesBinaryOperations(TestCase):
         'timeseries * 2 gives same timestamps with other value'
 
         current = self.a * 2
+
+        for attrib in self.a.__dict__:
+            if attrib == 'events':
+                continue
+            self.assertEquals(self.a.__dict__[attrib],
+                              current.__dict__[attrib])
+
+        for key in self.a.events:
+            self.assertEquals(self.a[key] * 2, current[key])
+
+    def test212(self):
+        '2 * timeseries gives same timestamps with other value'
+
+        current = 2 * self.a
 
         for attrib in self.a.__dict__:
             if attrib == 'events':
