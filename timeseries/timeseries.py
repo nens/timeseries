@@ -404,6 +404,28 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         result.appendChild(doc.createTextNode(newl + addindent))
         return result
 
+    def __mul__(self, other):
+        """return new TimeSeries, clone of `self`, altering event
+        values.
+
+        *other* can be a constant or a TimeSeries object.
+        """
+
+        result = self.clone()
+        keys = set(self.keys())
+        if isinstance(other, TimeSeries):
+            keys.union(other.keys())
+            for key in keys:
+                try:
+                    result[key] = self.get(key) * other.get(key)
+                except:
+                    pass
+        else:
+            for key in keys:
+                result[key] = self.get(key) * other
+
+        return result
+        
     def __add__(self, other):
         """return new TimeSeries, clone of `self`, altering event
         values.
