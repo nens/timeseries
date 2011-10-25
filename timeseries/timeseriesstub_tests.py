@@ -537,4 +537,7 @@ def test_write_to_pi_file():
 
     obj = TimeSeries.as_dict(filepath)
 
+    if filename in os.listdir(testdata):
+        os.remove(filepath)
+
     assert obj[("SAP", "sluice-error")].get_events() == list(series.events())
