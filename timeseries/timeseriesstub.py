@@ -816,6 +816,6 @@ def write_to_pi_file(*args, **kwargs):
         time series with a method 'events' to generate all date, value pairs
 
     """
-    ts = TimeSeries(*args, **kwargs)
-    ts.sorted_event_items = lambda : list(kwargs['timeseries'].events())
-    TimeSeries.write_to_pi_file(kwargs['filename'], [ts])
+    series = TimeSeries(*args, **kwargs)
+    series.sorted_event_items = lambda : list(kwargs['timeseries'].events())
+    TimeSeries.write_to_pi_file(kwargs['filename'], [series])

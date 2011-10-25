@@ -523,7 +523,7 @@ def test_sorted_event_keys():
 
 def test_write_to_pi_file():
     """Test the way to write a TimeseriesStub-like object to a PI XML file."""
-    timeseries = \
+    series = \
         SparseTimeseriesStub(datetime(2011, 10, 25), [10.0, 20.0, 30.0])
 
     testdata = pkg_resources.resource_filename("timeseries", "testdata/")
@@ -533,8 +533,8 @@ def test_write_to_pi_file():
         os.remove(filepath)
 
     write_to_pi_file(location_id="SAP", parameter_id="sluice-error",
-        filename=filepath, timeseries=timeseries)
+        filename=filepath, timeseries=series)
 
     obj = TimeSeries.as_dict(filepath)
 
-    assert obj[("SAP", "sluice-error")].get_events() == list(timeseries.events())
+    assert obj[("SAP", "sluice-error")].get_events() == list(series.events())
