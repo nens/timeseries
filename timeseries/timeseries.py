@@ -394,16 +394,22 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         header.appendChild(_element_with_text(doc, 'units', self.units))
         header.appendChild(doc.createTextNode(newl + addindent * 2))
 
-        for key in sorted(self.events.keys()):
+        for key, value in self.sorted_event_items():
             result.appendChild(doc.createTextNode(newl + addindent * 2))
             result.appendChild(_element_with_text(doc, 'event', attr={
                         'date': (key + offset).strftime("%Y-%m-%d"),
                         'time': (key + offset).strftime("%T"),
-                        'value': self.events[key],
+                        'value': value,
                         }))
 
         result.appendChild(doc.createTextNode(newl + addindent))
         return result
+
+    def sorted_event_items(self):
+        """return all items, sorted by key
+        """
+
+        return sorted(self.events.items())
 
     def __binop(self, other, op, null):
         """return self`op`other
