@@ -31,6 +31,14 @@ from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
 
+import os
+import pkg_resources
+
+from timeseries import TimeSeries
+from timeseriesstub import SparseTimeseriesStub
+from timeseriesstub import TimeseriesRestrictedStub
+from timeseriesstub import TimeseriesStub
+from timeseriesstub import TimeseriesWithMemoryStub
 from timeseriesstub import add_timeseries
 from timeseriesstub import average_monthly_events
 from timeseriesstub import create_empty_timeseries
@@ -38,10 +46,7 @@ from timeseriesstub import enumerate_events
 from timeseriesstub import map_timeseries
 from timeseriesstub import multiply_timeseries
 from timeseriesstub import split_timeseries
-from timeseriesstub import SparseTimeseriesStub
-from timeseriesstub import TimeseriesStub
-from timeseriesstub import TimeseriesWithMemoryStub
-from timeseriesstub import TimeseriesRestrictedStub
+from timeseriesstub import write_to_pi_file
 
 
 class TimeseriesStubTestSuite(TestCase):
@@ -508,3 +513,28 @@ class enumerate_eventsTestSuite(TestCase):
 
         """
         self.assertEqual([], list(enumerate_events(TimeseriesStub())))
+
+def test_sorted_event_keys():
+    """Test the way to attach a method to a TimeseriesStub-like object."""
+    timeseries = \
+        SparseTimeseriesStub(datetime(2011, 10, 25), [10.0, 20.0, 30.0])
+    timeseries.sorted_event_items = lambda : list(timeseries.events())
+    assert timeseries.sorted_event_items() == list(timeseries.events())
+
+def test_write_to_pi_file():
+    """Test the way to write a TimeseriesStub-like object to a PI XML file."""
+    timeseries = \
+        SparseTimeseriesStub(datetime(2011, 10, 25), [10.0, 20.0, 30.0])
+
+    testdata = pkg_resources.resource_filename("timeseries", "testdata/")
+    filename = "sluice-error.xml"
+    filepath = os.path.join(testdata, filename)
+    if filename in os.listdir(testdata):
+        os.remove(filepath)
+
+    write_to_pi_file(location_id="SAP", parameter_id="sluice-error",
+        filename=filepath, timeseries=timeseries)
+
+    obj = TimeSeries.as_dict(filepath)
+
+    assert obj[("SAP", "sluice-error")].get_events() == list(timeseries.events())

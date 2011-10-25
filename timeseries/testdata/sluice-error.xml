@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><TimeSeries version="1.2" xmlns="http://www.wldelft.nl/fews/PI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.wldelft.nl/fews/PI http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd">
+  <timeZone>0.00</timeZone>
+  <series>
+    <header>
+      <type/>
+      <locationId>SAP</locationId>
+      <parameterId>sluice-error</parameterId>
+      <timeStep unit="nonequidistant"/>
+      <startDate date="1970-01-01" time="00:00:00"/>
+      <endDate date="1970-01-01" time="00:00:00"/>
+      <missVal/>
+      <stationName/>
+      <units/>
+    </header>
+    <event date="2011-10-25" time="00:00:00" value="10.0"/>
+    <event date="2011-10-26" time="00:00:00" value="20.0"/>
+    <event date="2011-10-27" time="00:00:00" value="30.0"/>
+  </series>
+</TimeSeries>

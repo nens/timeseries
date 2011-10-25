@@ -34,6 +34,8 @@ from datetime import datetime
 from datetime import timedelta
 from math import fabs
 
+from timeseries import TimeSeries
+
 logger = logging.getLogger(__name__)
 
 
@@ -803,3 +805,17 @@ def split_timeseries(timeseries):
             non_pos_timeseries.add_value(date, 0)
             non_neg_timeseries.add_value(date, 0)
     return (non_pos_timeseries, non_neg_timeseries)
+
+def write_to_pi_file(*args, **kwargs):
+    """Write the given timeseries in PI XML format.
+
+    Parameters:
+      *kwargs['filename']*
+        name of PI XML file to create and write to
+      *kwargs['timeseries']*
+        time series with a method 'events' to generate all date, value pairs
+
+    """
+    ts = TimeSeries(*args, **kwargs)
+    ts.sorted_event_items = lambda : list(kwargs['timeseries'].events())
+    TimeSeries.write_to_pi_file(kwargs['filename'], [ts])
