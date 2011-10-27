@@ -30,6 +30,7 @@ import logging
 import itertools
 import timeseries
 
+from copy import deepcopy
 from datetime import datetime
 from datetime import timedelta
 from math import fabs
@@ -813,9 +814,22 @@ def write_to_pi_file(*args, **kwargs):
       *kwargs['filename']*
         name of PI XML file to create and write to
       *kwargs['timeseries']*
-        time series with a method 'events' to generate all date, value pairs
+        single time series, or a dict of time series, where each time series
+        has with a method 'events' to generate all date, value pairs
 
     """
-    series = TimeSeries(*args, **kwargs)
-    series.sorted_event_items = lambda : list(kwargs['timeseries'].events())
-    TimeSeries.write_to_pi_file(kwargs['filename'], [series])
+    multiple_series_stub = kwargs['timeseries']
+    if isinstance(multiple_series_stub, dict):
+        multiple_series = []
+        for parameter_id, series_stub in multiple_series_stub.iteritems():
+            my_kwargs = deepcopy(kwargs)
+            my_kwargs["parameter_id"] = parameter_id
+            series = TimeSeries(*args, **my_kwargs)
+            series.sorted_event_items = lambda s=series_stub: list(s.events())
+            multiple_series.append(series)
+    else:
+        series = TimeSeries(*args, **kwargs)
+        series.sorted_event_items = lambda : list(multiple_series_stub.events())
+        multiple_series = [series]
+
+    TimeSeries.write_to_pi_file(kwargs['filename'], multiple_series)
