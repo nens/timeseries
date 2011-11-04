@@ -827,6 +827,7 @@ def write_to_pi_file(*args, **kwargs):
             series = TimeSeries(*args, **my_kwargs)
             series.sorted_event_items = lambda s=series_stub: list(s.events())
             multiple_series.append(series)
+        multiple_series.sort(key=lambda series: series.parameter_id)
     else:
         series = TimeSeries(*args, **kwargs)
         series.sorted_event_items = lambda : list(multiple_series_stub.events())
