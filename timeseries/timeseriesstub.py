@@ -349,6 +349,9 @@ class TimeseriesStub(timeseries.TimeSeries):
             for date, value in daily_events(self._events):
                 yield date, value
 
+    def get_events(self, start_date=None, end_date=None):
+        return self.events(start_date, end_date)
+
     def monthly_events(self):
         """Return a generator to iterate over all monthly events.
 
@@ -445,6 +448,9 @@ class SparseTimeseriesStub:
                 yield current_date, value
                 current_date = current_date + timedelta(1)
 
+    def get_events(self, start_date=None, end_date=None):
+        return self.events(start_date, end_date)
+
 
 class TimeseriesWithMemoryStub(TimeseriesStub):
 
@@ -539,8 +545,6 @@ class TimeseriesRestrictedStub(TimeseriesStub):
                     yield event[0], event[1]
                 else:
                     break
-
-    get_events = events
 
 
 def enumerate_events(*timeseries_list):
