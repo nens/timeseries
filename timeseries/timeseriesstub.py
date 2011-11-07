@@ -540,6 +540,8 @@ class TimeseriesRestrictedStub(TimeseriesStub):
                 else:
                     break
 
+    get_events = events
+
 
 def enumerate_events(*timeseries_list):
     """Yield the events for all the days of the given time series.
