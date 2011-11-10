@@ -261,6 +261,29 @@ class TimeSeries:
         return result
 
     @classmethod
+    def _from_django_QuerySet(cls, qs):
+        """private function
+
+        convert a django QuerySet to a result described in as_dict
+        """
+
+        result = {}
+        for series in qs:
+            obj = TimeSeries()
+            event = None
+            for event in series:
+                obj[event.timestamp] = (event.value, event.flag, event.comment)
+            if event is not None:
+                ## nice: we ran the loop at least once, let's get
+                ## common information from the last event.
+                obj.location_id = event.series.location.id
+                obj.parameter_id = event.series.parameter.id
+                obj.units = event.series.parameter.groupkey.unit
+                ## and add the TimeSeries to the result
+                result[(obj.location_id, obj.parameter_id)] = obj
+        return result
+
+    @classmethod
     def as_dict(cls, input):
         """convert input to collection of TimeSeries
 
@@ -275,6 +298,9 @@ class TimeSeries:
         if (isinstance(input, str) or hasattr(input, 'read')):
             ## a string or a file, maybe PI?
             result = cls._from_xml(input)
+        elif hasattr(input, 'count'):
+            ## a django.db.models.query.QuerySet?
+            result = cls._from_django_QuerySet(input)
         else:
             result = None
 
