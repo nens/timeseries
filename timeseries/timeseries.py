@@ -277,9 +277,9 @@ class TimeSeries:
             event = None
             event_set = series.event_set.all()
             if start is not None:
-                event_set = event_set.filter(timestamp >= start)
+                event_set = event_set.filter(timestamp__gte=start)
             if end is not None:
-                event_set = event_set.filter(timestamp <= end)
+                event_set = event_set.filter(timestamp__lte=end)
             for event in event_set:
                 obj[event.timestamp] = (event.value, event.flag, event.comment)
             if event is not None:
