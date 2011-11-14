@@ -311,6 +311,14 @@ class TimeSeriesInput(TestCase):
         self.assertTrue(isinstance(obj, list))
         self.assertEquals(2, len(obj))
 
+    #def test300(self):
+    #    'TimeSeries.as_dict reads from django QuerySet'
+    #    self.assertEquals("tested", False)
+
+    #def test310(self):
+    #    'TimeSeries.as_dict filters based on timestamps from django QuerySet'
+    #    self.assertEquals("tested", False)
+
 
 class TimeSeriesOutput(TestCase):
 
