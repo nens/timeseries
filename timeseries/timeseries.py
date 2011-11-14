@@ -261,7 +261,7 @@ class TimeSeries:
         return result
 
     @classmethod
-    def _from_django_QuerySet(cls, qs):
+    def _from_django_QuerySet(cls, qs, start, end):
         """private function
 
         convert a django QuerySet to a result described in as_dict.
@@ -275,20 +275,24 @@ class TimeSeries:
         for series in qs:
             obj = TimeSeries()
             event = None
-            for event in series.event_set.all():
+            event_set = series.event_set.all()
+            if start is not None:
+                event_set = event_set.filter(timestamp >= start)
+            if end is not None:
+                event_set = event_set.filter(timestamp <= end)
+            for event in event_set:
                 obj[event.timestamp] = (event.value, event.flag, event.comment)
             if event is not None:
-                ## nice: we ran the loop at least once, let's get
-                ## common information from the last event.
-                obj.location_id = event.series.location.id
-                obj.parameter_id = event.series.parameter.id
-                obj.units = event.series.parameter.groupkey.unit
+                ## nice: we ran the loop at least once.
+                obj.location_id = series.location.id
+                obj.parameter_id = series.parameter.id
+                obj.units = series.parameter.groupkey.unit
                 ## and add the TimeSeries to the result
                 result[(obj.location_id, obj.parameter_id)] = obj
         return result
 
     @classmethod
-    def as_dict(cls, input):
+    def as_dict(cls, input, start=None, end=None):
         """convert input to collection of TimeSeries
 
         input may be (the name of) a PI file or just about anything
@@ -297,6 +301,10 @@ class TimeSeries:
         output is a dictionary, where keys are the 2-tuple
         location_id/parameter_id and the values are the TimeSeries
         objects.
+
+        `start` and `end` can be specified so that only the desired
+        data from the `input` data source is retrieved.  if this
+        really happens, it depends on the data source.
         """
 
         if (isinstance(input, str) or hasattr(input, 'read')):
@@ -304,7 +312,7 @@ class TimeSeries:
             result = cls._from_xml(input)
         elif hasattr(input, 'count'):
             ## a django.db.models.query.QuerySet?
-            result = cls._from_django_QuerySet(input)
+            result = cls._from_django_QuerySet(input, start, end)
         else:
             result = None
 
