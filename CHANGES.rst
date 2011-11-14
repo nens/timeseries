@@ -5,7 +5,8 @@ Changelog of timeseries
 0.8 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added matplotlib tot syseggs in buildout.cfg. Matplotlib is required
+  by library nens.
 
 
 0.7 (2011-07-18)
