@@ -264,7 +264,11 @@ class TimeSeries:
     def _from_django_QuerySet(cls, qs):
         """private function
 
-        convert a django QuerySet to a result described in as_dict
+        convert a django QuerySet to a result described in as_dict.
+
+        the `qs` QuerySet is assumed to be an iterable containing
+        objects each of which with a `event_set` field with an `all`
+        method.
         """
 
         result = {}
