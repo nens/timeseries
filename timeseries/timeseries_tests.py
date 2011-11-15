@@ -66,6 +66,7 @@ class WB:
     class Series:
         def __init__(self, content, qs):
             self.qs = qs
+            self.timestep = WB.LP_Object('')
             self.location = WB.LP_Object(content['location'])
             self.parameter = WB.LP_Object(content['parameter'], 'm3/h')
             self.event_set = WB.EventSet(content['events'], qs)
