@@ -286,6 +286,7 @@ class TimeSeries:
                 ## nice: we ran the loop at least once.
                 obj.location_id = series.location.id
                 obj.parameter_id = series.parameter.id
+                obj.time_step = series.timestep.id
                 obj.units = series.parameter.groupkey.unit
                 ## and add the TimeSeries to the result
                 result[(obj.location_id, obj.parameter_id)] = obj
