@@ -38,6 +38,74 @@ from nens import mock
 import os
 
 
+class django:
+    """sort of namespace"""
+
+    class QuerySet:
+        def __init__(self, content):
+            self.content = [WB.Series(i, self) for i in content]
+            self.current = -1
+            self.filtered = []
+
+        def count(self):
+            return len(self.content)
+
+        def __iter__(self):
+            return self
+
+        def next(self):
+            try:
+                self.current += 1
+                return self.content[self.current]
+            except IndexError:
+                raise StopIteration
+
+class WB:
+    """contains water balance mock objects"""
+
+    class Series:
+        def __init__(self, content, qs):
+            self.qs = qs
+            self.location = WB.LP_Object(content['location'])
+            self.parameter = WB.LP_Object(content['parameter'], 'm3/h')
+            self.event_set = WB.EventSet(content['events'], qs)
+
+    class LP_Object:
+        def __init__(self, content, unit=None):
+            self.id = content
+            self.unit = unit
+            if content is not None and unit is not None:
+                self.groupkey = WB.LP_Object(None, unit)
+
+    class Event:
+        def __init__(self, tvfc):
+            self.timestamp, self.value, self.flag, self.comment = tvfc
+
+    class EventSet:
+        def __init__(self, content, qs):
+            self.qs = qs
+            self.content = content
+            self.current = -1
+            pass
+
+        def __iter__(self):
+            return self
+
+        def next(self):
+            try:
+                self.current += 1
+                return WB.Event(self.content[self.current])
+            except IndexError:
+                raise StopIteration
+
+        def all(self):
+            return self
+
+        def filter(self, *args, **kwargs):
+            self.qs.filtered.append((args, kwargs))
+            return self
+
+
 class TimeSeriesTestSuite(TestCase):
     def test_001(self):
         """can we create an empty TimeSeries object?
@@ -311,13 +379,85 @@ class TimeSeriesInput(TestCase):
         self.assertTrue(isinstance(obj, list))
         self.assertEquals(2, len(obj))
 
-    #def test300(self):
-    #    'TimeSeries.as_dict reads from django QuerySet'
-    #    self.assertEquals("tested", False)
+    def test300(self):
+        'TimeSeries.as_dict reads from empty django QuerySet'
 
-    #def test310(self):
-    #    'TimeSeries.as_dict filters based on timestamps from django QuerySet'
-    #    self.assertEquals("tested", False)
+        testdata = django.QuerySet([])
+        obj = TimeSeries.as_dict(testdata)
+        self.assertEquals({}, obj)
+
+    def test305(self):
+        'TimeSeries.as_dict reads from django QuerySet'
+
+        DT = datetime
+        testdata = django.QuerySet([
+                {'location': '123',
+                 'parameter': 'Q',
+                 'events': [(DT(2011, 11, 11, 12, 20), 1.1, 8, ''),
+                            (DT(2011, 11, 11, 12, 25), 1.2, 1, ''),
+                            (DT(2011, 11, 11, 12, 30), 1.3, 2, '')]},
+                {'location': '124',
+                 'parameter': 'Q',
+                 'events': [(DT(2011, 11, 11, 12, 20), 0.1, 8, ''),
+                            (DT(2011, 11, 11, 12, 25), 0.2, 1, ''),
+                            (DT(2011, 11, 11, 12, 30), 0.3, 2, '')]},
+                ])
+        obj = TimeSeries.as_dict(testdata)
+        self.assertEquals(set([('123', 'Q'), ('124', 'Q')]), set(obj.keys()))
+        self.assertEquals(set([1.1, 1.2, 1.3]), set(i[0] for i in obj[('123', 'Q')].events.values()))
+        self.assertEquals(set([0.1, 0.2, 0.3]), set(i[0] for i in obj[('124', 'Q')].events.values()))
+        self.assertEquals([], testdata.filtered)
+
+    def test350(self):
+        'TimeSeries.as_dict filters based on timestamps from django QuerySet'
+
+        DT = datetime
+        testdata = django.QuerySet([
+                {'location': '124',
+                 'parameter': 'Q',
+                 'events': [(DT(2011, 11, 11, 12, 20), 0.1, 8, ''),
+                            (DT(2011, 11, 11, 12, 25), 0.2, 1, ''),
+                            (DT(2011, 11, 11, 12, 30), 0.3, 2, '')]},
+                ])
+        start = DT(2011, 11, 11, 12, 25)
+        obj = TimeSeries.as_dict(testdata, start)
+        self.assertEquals(set([('124', 'Q')]), set(obj.keys()))
+        self.assertEquals([((), {'timestamp__gte': start})], testdata.filtered)
+
+    def test352(self):
+        'TimeSeries.as_dict filters based on timestamps from django QuerySet'
+
+        DT = datetime
+        testdata = django.QuerySet([
+                {'location': '124',
+                 'parameter': 'Q',
+                 'events': [(DT(2011, 11, 11, 12, 20), 0.1, 8, ''),
+                            (DT(2011, 11, 11, 12, 25), 0.2, 1, ''),
+                            (DT(2011, 11, 11, 12, 30), 0.3, 2, '')]},
+                ])
+        end = DT(2011, 11, 11, 12, 25)
+        obj = TimeSeries.as_dict(testdata, end=end)
+        self.assertEquals(set([('124', 'Q')]), set(obj.keys()))
+        self.assertEquals([((), {'timestamp__lte': end})], testdata.filtered)
+
+    def test354(self):
+        'TimeSeries.as_dict filters based on timestamps from django QuerySet'
+
+        DT = datetime
+        testdata = django.QuerySet([
+                {'location': '124',
+                 'parameter': 'Q',
+                 'events': [(DT(2011, 11, 11, 12, 20), 0.1, 8, ''),
+                            (DT(2011, 11, 11, 12, 25), 0.2, 1, ''),
+                            (DT(2011, 11, 11, 12, 30), 0.3, 2, '')]},
+                ])
+        start = DT(2011, 11, 11, 12, 25)
+        end = DT(2011, 11, 11, 12, 25)
+        obj = TimeSeries.as_dict(testdata, start, end)
+        self.assertEquals(set([('124', 'Q')]), set(obj.keys()))
+        self.assertEquals([((), {'timestamp__gte': start}),
+                           ((), {'timestamp__lte': end}),
+                           ], testdata.filtered)
 
 
 class TimeSeriesOutput(TestCase):
@@ -525,7 +665,7 @@ class TimeSeriesBinaryOperations(TestCase):
     def test200(self):
         'timeseries * 1 gives same timeseries'
 
-        current = self.a *1
+        current = self.a * 1
 
         for attrib in self.a.__dict__:
             self.assertEquals(current.__dict__[attrib],
