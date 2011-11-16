@@ -36,6 +36,7 @@ from xml.dom.minidom import Document
 from xml.dom.minidom import Element
 from nens import mock
 import os
+import logging
 
 
 class django:
@@ -148,9 +149,9 @@ class TimeSeriesTestSuite(TestCase):
         d1 = datetime(1979, 3, 15, 9, 35)
         d3 = datetime(1979, 4, 12, 9, 35)
         d2 = datetime(1979, 5, 15, 9, 35)
-        obj.events[d1] = 1.23
-        obj.events[d3] = 0.23
-        obj.events[d2] = -3.01
+        obj[d1] = 1.23
+        obj[d3] = 0.23
+        obj[d2] = -3.01
         self.assertEqual(d1, obj.get_start_date())
         self.assertEqual(d2, obj.get_end_date())
 
@@ -161,9 +162,9 @@ class TimeSeriesTestSuite(TestCase):
         d1 = datetime(1979, 3, 15, 9, 35)
         d3 = datetime(1979, 4, 12, 9, 35)
         d2 = datetime(1979, 5, 15, 9, 35)
-        obj.events[d1] = 1.23
-        obj.events[d3] = 0.23
-        obj.events[d2] = -3.01
+        obj[d1] = 1.23
+        obj[d3] = 0.23
+        obj[d2] = -3.01
         self.assertEqual(3, len(obj.get_events()))
         self.assertEqual(2, len(obj.get_events(d3)))
         self.assertEqual(2, len(obj.get_events(d1, d3)))
@@ -178,6 +179,27 @@ class TimeSeriesTestSuite(TestCase):
         self.assertEqual(0, len(obj.get_events(d3)))
         self.assertEqual(0, len(obj.get_events(d1, d3)))
 
+    def test_042(self):
+        'using deprecated events function'
+
+        root = logging.getLogger()
+        handler = mock.Handler()
+        root.addHandler(handler)
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        d1 = datetime(1979, 3, 15, 9, 35)
+        d3 = datetime(1979, 4, 12, 9, 35)
+        d2 = datetime(1979, 5, 15, 9, 35)
+        obj[d1] = 1.23
+        obj[d3] = 0.23
+        obj[d2] = -3.01
+        self.assertEqual(3, len(obj.events()))
+        self.assertEqual(2, len(obj.events(d3)))
+        self.assertEqual(2, len(obj.events(d1, d3)))
+        self.assertEqual(3, len(handler.content))
+        self.assertEqual("timeseries.timeseries|WARNING|Call to deprecated function events.", 
+                         handler.content[0])
+        root.removeHandler(handler)
+
     def test_100(self):
         '''object can be seen as a dictionary (defines __setitem__ and
         __getitem__)'''
@@ -190,7 +212,7 @@ class TimeSeriesTestSuite(TestCase):
         obj[d3] = 0.23
         obj[d2] = -3.01
 
-        [self.assertEquals(obj.events[d], obj[d]) for d in obj.events.keys()]
+        [self.assertEquals(obj._events[d], obj[d]) for d in obj._events.keys()]
 
     def test_110(self):
         'add_value is defined and equal to __setitem__'
@@ -200,17 +222,27 @@ class TimeSeriesTestSuite(TestCase):
         ## setting
         obj.add_value(d1, 1.23)
         ## checking
-        self.assertEquals(obj.events[d1], obj[d1])
+        self.assertEquals(obj._events[d1], obj[d1])
 
     def test_111(self):
-        'get_value is defined and equal to __getitem__'
+        'get_event is defined and equal to __getitem__'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
         d1 = datetime(1979, 3, 15, 9, 35)
         ## setting
         obj[d1] = 1.23
         ## checking
-        self.assertEquals(obj.events[d1], obj.get_value(d1))
+        self.assertEquals(obj._events[d1], obj.get_event(d1))
+
+    def test_112(self):
+        'get_value is defined returns only value, no flags'
+
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        d1 = datetime(1979, 3, 15, 9, 35)
+        ## setting
+        obj[d1] = 1.23
+        ## checking
+        self.assertEquals(obj._events[d1][0], obj.get_value(d1))
 
     def test_115(self):
         'can use .get with default value'
@@ -219,8 +251,8 @@ class TimeSeriesTestSuite(TestCase):
         d1 = datetime(1979, 3, 15, 9, 35)
         obj.add_value(d1, 1.23)  # executing __setitem__
         ## finds values that are there
-        [self.assertEquals(obj.events[d], obj.get(d))
-         for d in obj.events.keys()]
+        [self.assertEquals(obj._events[d], obj.get(d))
+         for d in obj._events.keys()]
         d2 = datetime(1979, 5, 15, 9, 35)
         ## returns default value if event is not there
         self.assertEquals(None, obj.get(d2))
@@ -345,6 +377,33 @@ class TimeSeriesInput(TestCase):
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         ts = obj[("600", "P1201")]
         self.assertEquals([
+                (str_to_datetime("2010-04-03", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-04", "00:00:00", 2), (22, 0, '')),
+                (str_to_datetime("2010-04-05", "00:00:00", 2), (17, 0, '')),
+                (str_to_datetime("2010-04-06", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-07", "00:00:00", 2), (21, 0, '')),
+                (str_to_datetime("2010-04-08", "00:00:00", 2), (22, 0, '')),
+                (str_to_datetime("2010-04-09", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-10", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-11", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-12", "00:00:00", 2), (22, 0, '')), ],
+                          ts.get_events())
+
+    def test101(self):
+        'TimeSeries.as_dict reads events of series (b)'
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        ts = obj[("600", "P2504")]
+        self.assertEquals([
+                (str_to_datetime("2010-04-05", "00:00:00", 2), (17, 0, '')),
+                (str_to_datetime("2010-04-08", "00:00:00", 2), (22, 0, '')),
+                (str_to_datetime("2010-04-10", "00:00:00", 2), (24, 0, '')), ],
+                          ts.get_events())
+
+    def test110(self):
+        'TimeSeries.as_dict reads events of series (a)'
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        ts = obj[("600", "P1201")]
+        self.assertEquals([
                 (str_to_datetime("2010-04-03", "00:00:00", 2), 20),
                 (str_to_datetime("2010-04-04", "00:00:00", 2), 22),
                 (str_to_datetime("2010-04-05", "00:00:00", 2), 17),
@@ -355,9 +414,9 @@ class TimeSeriesInput(TestCase):
                 (str_to_datetime("2010-04-10", "00:00:00", 2), 24),
                 (str_to_datetime("2010-04-11", "00:00:00", 2), 24),
                 (str_to_datetime("2010-04-12", "00:00:00", 2), 22), ],
-                          ts.get_events())
+                          ts.get_values())
 
-    def test101(self):
+    def test111(self):
         'TimeSeries.as_dict reads events of series (b)'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         ts = obj[("600", "P2504")]
@@ -365,7 +424,7 @@ class TimeSeriesInput(TestCase):
                 (str_to_datetime("2010-04-05", "00:00:00", 2), 17),
                 (str_to_datetime("2010-04-08", "00:00:00", 2), 22),
                 (str_to_datetime("2010-04-10", "00:00:00", 2), 24), ],
-                          ts.get_events())
+                          ts.get_values())
 
     def test200(self):
         'TimeSeries.as_list reads file given its name'
@@ -405,8 +464,8 @@ class TimeSeriesInput(TestCase):
                 ])
         obj = TimeSeries.as_dict(testdata)
         self.assertEquals(set([('123', 'Q'), ('124', 'Q')]), set(obj.keys()))
-        self.assertEquals(set([1.1, 1.2, 1.3]), set(i[0] for i in obj[('123', 'Q')].events.values()))
-        self.assertEquals(set([0.1, 0.2, 0.3]), set(i[0] for i in obj[('124', 'Q')].events.values()))
+        self.assertEquals(set([1.1, 1.2, 1.3]), set(i[0] for i in obj[('123', 'Q')]._events.values()))
+        self.assertEquals(set([0.1, 0.2, 0.3]), set(i[0] for i in obj[('124', 'Q')]._events.values()))
         self.assertEquals([], testdata.filtered)
 
     def test350(self):
@@ -481,7 +540,7 @@ class TimeSeriesOutput(TestCase):
                                     offset=2)
         target = file(self.testdata + "targetOutput.xml").read()
         current = file(self.testdata + "current.xml").read()
-        self.assertEquals(target, current)
+        self.assertEquals(target.strip(), current.strip())
 
     def test010(self):
         'TimeSeries.write_to_pi_file writes list to stream'
@@ -490,7 +549,7 @@ class TimeSeriesOutput(TestCase):
         TimeSeries.write_to_pi_file(stream, obj, offset=2)
         target = file(self.testdata + "targetOutput.xml").read()
         current = ''.join(stream.content)
-        self.assertEquals(target, current)
+        self.assertEquals(target.strip(), current.strip())
 
     def test020(self):
         'TimeSeries.write_to_pi_file writes dict to stream'
@@ -499,7 +558,7 @@ class TimeSeriesOutput(TestCase):
         TimeSeries.write_to_pi_file(stream, obj, offset=2)
         target = file(self.testdata + "targetOutput.xml").read()
         current = ''.join(stream.content)
-        self.assertEquals(target, current)
+        self.assertEquals(target.strip(), current.strip())
 
     def test022(self):
         'TimeSeries.write_to_pi_file writes dict to stream'
@@ -508,7 +567,7 @@ class TimeSeriesOutput(TestCase):
         TimeSeries.write_to_pi_file(stream, obj, offset=0)
         target = file(self.testdata + "targetOutput00.xml").read()
         current = ''.join(stream.content)
-        self.assertEquals(target, current)
+        self.assertEquals(target.strip(), current.strip())
 
     def test024(self):
         'TimeSeries.write_to_pi_file writes dict to stream'
@@ -517,7 +576,7 @@ class TimeSeriesOutput(TestCase):
         TimeSeries.write_to_pi_file(stream, obj, offset=12)
         target = file(self.testdata + "targetOutput12.xml").read()
         current = ''.join(stream.content)
-        self.assertEquals(target, current)
+        self.assertEquals(target.strip(), current.strip())
 
 
 class TimeSeriesBinaryOperations(TestCase):
@@ -526,15 +585,15 @@ class TimeSeriesBinaryOperations(TestCase):
         d1 = datetime(1979, 3, 15, 9, 35)
         d3 = datetime(1979, 4, 12, 9, 35)
         d2 = datetime(1979, 5, 15, 9, 35)
-        obj.events[d1] = 1.23
-        obj.events[d3] = 0.23
-        obj.events[d2] = -3.01
+        obj[d1] = 1.23
+        obj[d3] = 0.23
+        obj[d2] = -3.01
 
         self.a = obj
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        obj.events[d1] = 33.3
-        obj.events[d2] = -0.25
+        obj[d1] = 33.3
+        obj[d2] = -0.25
 
         self.b = obj
 
@@ -544,11 +603,11 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a.clone()
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(current.__dict__[attrib],
                               self.a.__dict__[attrib])
-        self.assertEquals({}, current.events)
+        self.assertEquals({}, current._events)
 
     def test010(self):
         'cloning timeseries with events'
@@ -574,13 +633,13 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a + 1
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in self.a.events:
-            self.assertEquals(self.a[key] + 1, current[key])
+        for key in self.a._events:
+            self.assertEquals(self.a.get_value(key) + 1, current[key][0])
 
     def test112(self):
         '1 + timeseries gives same timestamps with other value'
@@ -588,13 +647,13 @@ class TimeSeriesBinaryOperations(TestCase):
         current = 1 + self.a
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in self.a.events:
-            self.assertEquals(self.a[key] + 1, current[key])
+        for key in self.a._events:
+            self.assertEquals(self.a.get_value(key) + 1, current[key][0])
 
     def test120(self):
         'timeseries + other gives union of keys'
@@ -602,14 +661,14 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a + self.b
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in current.events:
-            self.assertEquals(self.a.get(key, 0) + self.b.get(key, 0),
-                              current[key])
+        for key in current._events:
+            self.assertEquals(self.a.get(key, [0])[0] + self.b.get(key, [0])[0],
+                              current[key][0])
 
     def test130(self):
         'timeseries - 0 gives same timeseries'
@@ -626,13 +685,13 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a - 1
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in self.a.events:
-            self.assertEquals(self.a[key] - 1, current[key])
+        for key in self.a._events:
+            self.assertEquals(self.a.get_value(key) - 1, current[key][0])
 
     def test142(self):
         '1 - timeseries gives same timestamps with other value'
@@ -640,13 +699,13 @@ class TimeSeriesBinaryOperations(TestCase):
         current = 1 - self.a
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in self.a.events:
-            self.assertEquals(1 - self.a[key], current[key])
+        for key in self.a._events:
+            self.assertEquals(1 - self.a.get_value(key), current[key][0])
 
     def test150(self):
         'timeseries - other gives union of keys'
@@ -654,14 +713,14 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a - self.b
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in current.events:
-            self.assertEquals(self.a.get(key, 0) - self.b.get(key, 0),
-                              current[key])
+        for key in current._events:
+            self.assertEquals(self.a.get(key, [0])[0] - self.b.get(key, [0])[0],
+                              current[key][0])
 
     def test200(self):
         'timeseries * 1 gives same timeseries'
@@ -678,13 +737,13 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a * 2
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in self.a.events:
-            self.assertEquals(self.a[key] * 2, current[key])
+        for key in self.a._events:
+            self.assertEquals(self.a.get_value(key) * 2, current[key][0])
 
     def test212(self):
         '2 * timeseries gives same timestamps with other value'
@@ -692,13 +751,13 @@ class TimeSeriesBinaryOperations(TestCase):
         current = 2 * self.a
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in self.a.events:
-            self.assertEquals(self.a[key] * 2, current[key])
+        for key in self.a._events:
+            self.assertEquals(self.a.get_value(key) * 2, current[key][0])
 
     def test220(self):
         'timeseries * other gives intersection of keys'
@@ -706,11 +765,11 @@ class TimeSeriesBinaryOperations(TestCase):
         current = self.a * self.b
 
         for attrib in self.a.__dict__:
-            if attrib == 'events':
+            if attrib == '_events':
                 continue
             self.assertEquals(self.a.__dict__[attrib],
                               current.__dict__[attrib])
 
-        for key in current.events:
-            self.assertEquals(self.a[key] * self.b[key],
-                              current[key])
+        for key in current._events:
+            self.assertEquals(self.a.get_value(key) * self.b.get_value(key),
+                              current[key][0])

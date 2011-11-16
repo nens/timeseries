@@ -12,16 +12,16 @@
       <stationName>blower 1</stationName>
       <units>uur/dag</units>
     </header>
-    <event date="2010-04-03" time="00:00:00" value="20.0"/>
-    <event date="2010-04-04" time="00:00:00" value="22.0"/>
-    <event date="2010-04-05" time="00:00:00" value="17.0"/>
-    <event date="2010-04-06" time="00:00:00" value="20.0"/>
-    <event date="2010-04-07" time="00:00:00" value="21.0"/>
-    <event date="2010-04-08" time="00:00:00" value="22.0"/>
-    <event date="2010-04-09" time="00:00:00" value="24.0"/>
-    <event date="2010-04-10" time="00:00:00" value="24.0"/>
-    <event date="2010-04-11" time="00:00:00" value="24.0"/>
-    <event date="2010-04-12" time="00:00:00" value="22.0"/>
+    <event date="2010-04-03" flag="0" time="00:00:00" value="20.0"/>
+    <event date="2010-04-04" flag="0" time="00:00:00" value="22.0"/>
+    <event date="2010-04-05" flag="0" time="00:00:00" value="17.0"/>
+    <event date="2010-04-06" flag="0" time="00:00:00" value="20.0"/>
+    <event date="2010-04-07" flag="0" time="00:00:00" value="21.0"/>
+    <event date="2010-04-08" flag="0" time="00:00:00" value="22.0"/>
+    <event date="2010-04-09" flag="0" time="00:00:00" value="24.0"/>
+    <event date="2010-04-10" flag="0" time="00:00:00" value="24.0"/>
+    <event date="2010-04-11" flag="0" time="00:00:00" value="24.0"/>
+    <event date="2010-04-12" flag="0" time="00:00:00" value="22.0"/>
   </series>
   <series>
     <header>
@@ -35,8 +35,8 @@
       <stationName>ontwatering</stationName>
       <units>uur/dag</units>
     </header>
-    <event date="2010-04-05" time="00:00:00" value="17.0"/>
-    <event date="2010-04-08" time="00:00:00" value="22.0"/>
-    <event date="2010-04-10" time="00:00:00" value="24.0"/>
+    <event date="2010-04-05" flag="0" time="00:00:00" value="17.0"/>
+    <event date="2010-04-08" flag="0" time="00:00:00" value="22.0"/>
+    <event date="2010-04-10" flag="0" time="00:00:00" value="24.0"/>
   </series>
 </TimeSeries>

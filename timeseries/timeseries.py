@@ -35,6 +35,23 @@ from xml.dom.minidom import Document
 import re
 import operator
 
+
+logger = logging.getLogger(__name__)
+
+
+def deprecated(func):
+    """This is a decorator which can be used to mark functions
+    as deprecated. It will result in a warning being emitted
+    when the function is used."""
+    def new_func(*args, **kwargs):
+        logger.warn("Call to deprecated function %s." % func.__name__)
+        return func(*args, **kwargs)
+    new_func.__name__ = func.__name__
+    new_func.__doc__ = func.__doc__
+    new_func.__dict__.update(func.__dict__)
+    return new_func
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -118,8 +135,22 @@ class TimeSeries:
             start_date = self.get_start_date()
         if end_date is None:
             end_date = self.get_end_date()
-        return sorted([(k, v) for (k, v) in self.events.items()
+        return sorted([(k, v) for (k, v) in self._events.items()
                        if start_date <= k <= end_date])
+
+    @deprecated
+    def events(self, start_date=None, end_date=None):
+        """legacy code use this function.
+        """
+
+        return self.get_values(start_date, end_date)
+
+    def get_values(self, start_date=None, end_date=None):
+        """return only values of events in given range
+        """
+
+        result = self.get_events(start_date, end_date)
+        return [(k, v[0]) for (k, v) in result]
 
     def __init__(self, events={}, **kwargs):
         ## one of: instantaneous, continuous.  we usually work with
@@ -145,7 +176,7 @@ class TimeSeries:
         ## a string
         self.units = kwargs.get('units', '')
         ## key: timestamp, value: (double, flag, comment)
-        self.events = dict(events)  # associate a timestamp to a
+        self._events = dict(events)  # associate a timestamp to a
                                     # value, let's make a copy of it
         pass
 
@@ -155,7 +186,7 @@ class TimeSeries:
         returned value must match the events data
         """
 
-        timestamps = self.events.keys()
+        timestamps = self._events.keys()
         try:
             return min(timestamps)
         except:
@@ -167,20 +198,26 @@ class TimeSeries:
         returned value must match the events data
         """
 
-        timestamps = self.events.keys()
+        timestamps = self._events.keys()
         try:
             return max(timestamps)
         except:
             return datetime(1970, 1, 1)
 
     def add_value(self, tstamp, value):
-        """set event, fall back to __setitem__
+        """set value/event, fall back to __setitem__
         """
 
         self.__setitem__(tstamp, value)
 
     def get_value(self, tstamp):
-        """get event, fall back to __getitem__
+        """get value part of event
+        """
+
+        return self.__getitem__(tstamp)[0]
+
+    def get_event(self, tstamp):
+        """get complete event
         """
 
         return self.__getitem__(tstamp)
@@ -189,19 +226,23 @@ class TimeSeries:
         """behave as a dictionary (content is series events)
         """
 
-        self.events[key] = value
+        if not isinstance(value, tuple):
+            template = list(self._events.get(key, (0, 0, '')))
+            template[0] = value
+            value = tuple(template)
+        self._events[key] = value
 
     def __getitem__(self, key):
         """behave as a dictionary (content is series events)
         """
 
-        return self.events[key]
+        return self._events[key]
 
     def get(self, key, default=None):
         """behave as a dictionary (content is series events)
         """
 
-        return self.events.get(key, default)
+        return self._events.get(key, default)
 
     @classmethod
     def _from_xml(cls, stream):
@@ -435,10 +476,14 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
 
         for key, value in self.sorted_event_items():
             result.appendChild(doc.createTextNode(newl + addindent * 2))
+            if not isinstance(value, tuple):
+                value = (value, 0, '')
+            value, flag = value[:2]  # ignore comment
             result.appendChild(_element_with_text(doc, 'event', attr={
                         'date': (key + offset).strftime("%Y-%m-%d"),
                         'time': (key + offset).strftime("%T"),
                         'value': value,
+                        'flag': flag,
                         }))
 
         result.appendChild(doc.createTextNode(newl + addindent))
@@ -448,7 +493,7 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         """return all items, sorted by key
         """
 
-        return sorted(self.events.items())
+        return sorted(self._events.items())
 
     def __binop(self, other, op, null):
         """return self`op`other
@@ -470,12 +515,14 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
             keys.union(other.keys())
             for key in keys:
                 try:
-                    result[key] = op(self.get(key, null), other.get(key, null))
+                    flag = self[key][1]
+                    result[key] = (op(self.get_value(key), other.get_value(key)), flag, '')
                 except:
                     pass
         else:
             for key in keys:
-                result[key] = op(self.get(key), other)
+                flag = self[key][1]
+                result[key] = op(self.get_value(key), other), flag, ''
 
         return result
 
@@ -534,13 +581,14 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                             z=self.z,
                             units=self.units)
         if with_events:
-            result.events = dict(self.events)
+            result._events = dict(self._events)
         return result
 
     def keys(self):
         """behave as a dictionary (content is series events)
         """
-        return self.events.keys()
+        return self._events.keys()
+
 
     def dates_values(self):
         """
@@ -572,3 +620,4 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                     flag_dates.append(timestamp)
                     flag_values.append(flag)
         return dates, values, flag_dates, flag_values
+
