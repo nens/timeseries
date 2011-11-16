@@ -5,7 +5,7 @@ Changelog of timeseries
 0.9 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added MANIFEST.in.
 
 
 0.8.1 (2011-11-16)
