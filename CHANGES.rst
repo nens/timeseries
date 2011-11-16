@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.8 (unreleased)
+0.8 (2011-11-16)
 ----------------
 
 - Added timeseries.py with Django support.
