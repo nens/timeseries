@@ -5,6 +5,8 @@ Changelog of timeseries
 0.8 (unreleased)
 ----------------
 
+- Added timeseries.py with Django support.
+
 - Added time_step attribute to _from_django_QuerySet.
 
 - Added matplotlib tot syseggs in buildout.cfg. Matplotlib is required
