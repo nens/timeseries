@@ -588,3 +588,36 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         """behave as a dictionary (content is series events)
         """
         return self._events.keys()
+
+
+    def dates_values(self):
+        """
+        Return lists of dates, values, flag_dates and flag_values.
+
+        Easy when using matplotlib.
+        """
+        dates = []
+        values = []
+        flag_dates = []
+        flag_values = []
+        for timestamp, (value, flag, comment) in self.sorted_event_items():
+            if value is not None:
+                dates.append(timestamp)
+                values.append(value)
+
+                # Flags:
+                # 0: Original/Reliable
+                # 1: Corrected/Reliable
+                # 2: Completed/Reliable
+                # 3: Original/Doubtful
+                # 4: Corrected/Doubtful
+                # 5: Completed/Doubtful
+                # 6: Missing/Unreliable
+                # 7: Corrected/Unreliable
+                # 8: Completed/Unreliable
+                # 9: Missing value
+                if flag > 2:
+                    flag_dates.append(timestamp)
+                    flag_values.append(flag)
+        return dates, values, flag_dates, flag_values
+

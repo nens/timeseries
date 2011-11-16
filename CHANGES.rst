@@ -2,8 +2,28 @@ Changelog of timeseries
 ===================================================
 
 
-0.8 (unreleased)
+0.9 (unreleased)
 ----------------
+
+- Nothing changed yet.
+
+
+0.8.3 (2011-11-16)
+------------------
+
+- Added MANIFEST.in.
+
+
+0.8.1 (2011-11-16)
+------------------
+
+- Added tests.
+
+
+0.8 (2011-11-16)
+----------------
+
+- Added timeseries.py with Django support.
 
 - Added time_step attribute to _from_django_QuerySet.
 
