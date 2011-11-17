@@ -140,10 +140,12 @@ class TimeSeries:
 
     @deprecated
     def events(self, start_date=None, end_date=None):
-        """legacy code use this function.
-        """
+        """Return a generator to iterate over the requested daily events.
 
-        return self.get_values(start_date, end_date)
+        Only legacy code uses this function.
+        """
+        for value in self.get_values(start_date, end_date):
+            yield value
 
     def get_values(self, start_date=None, end_date=None):
         """return only values of events in given range
