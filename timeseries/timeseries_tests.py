@@ -793,6 +793,14 @@ class TimeSeriesSubsetting(TestCase):
         b = self.a.filter()
         self.assertEquals(self.a, b)
 
+    def test0002(self):
+        'filter against None returns everything'
+
+        b = self.a.filter(timestamp_lte=None)
+        self.assertEquals(self.a, b)
+        b = self.a.filter(timestamp_lt=None)
+        self.assertEquals(self.a, b)
+
     def test0010(self):
         'filter before or at timestamp'
 

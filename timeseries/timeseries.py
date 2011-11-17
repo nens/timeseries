@@ -235,6 +235,8 @@ class TimeSeries:
         for request in kwargs:
             field, op = request.split("_")
             value = kwargs[request]
+            if value is None:
+                continue
 
             assert(field == 'timestamp')
 
