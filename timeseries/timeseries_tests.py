@@ -773,3 +773,70 @@ class TimeSeriesBinaryOperations(TestCase):
         for key in current._events:
             self.assertEquals(self.a.get_value(key) * self.b.get_value(key),
                               current[key][0])
+
+
+class TimeSeriesSubsetting(TestCase):
+    def setUp(self):
+        obj = TimeSeries(location_id='loc', parameter_id='par')
+        self.d1 = datetime(1979, 3, 15, 9, 35)
+        self.d3 = datetime(1979, 4, 12, 9, 35)
+        self.d2 = datetime(1979, 5, 15, 9, 35)
+        obj[self.d1] = 1.23
+        obj[self.d3] = 0.23
+        obj[self.d2] = -3.01
+
+        self.a = obj
+
+    def test0000(self):
+        'filter without parameters returns everything'
+
+        b = self.a.filter()
+        self.assertEquals(self.a, b)
+
+    def test0002(self):
+        'filter against None returns everything'
+
+        b = self.a.filter(timestamp_lte=None)
+        self.assertEquals(self.a, b)
+        b = self.a.filter(timestamp_lt=None)
+        self.assertEquals(self.a, b)
+
+    def test0010(self):
+        'filter before or at timestamp'
+
+        b = self.a.filter(timestamp_lte=self.d2)
+        self.assertEquals(self.a, b)
+        b = self.a.filter(timestamp_lte=self.d1)
+        self.assertEquals(1, len(b))
+
+    def test0012(self):
+        'filter before timestamp'
+
+        b = self.a.filter(timestamp_lt=self.d1)
+        self.assertEquals(0, len(b))
+        b = self.a.filter(timestamp_lt=self.d2)
+        self.assertEquals(2, len(b))
+
+    def test0020(self):
+        'filter after or at timestamp'
+
+        b = self.a.filter(timestamp_gte=self.d1)
+        self.assertEquals(self.a, b)
+
+    def test0022(self):
+        'filter after timestamp'
+
+        b = self.a.filter(timestamp_gt=self.d1)
+        self.assertEquals(2, len(b))
+        b = self.a.filter(timestamp_gt=self.d2)
+        self.assertEquals(0, len(b))
+
+    def test0030(self):
+        'filter double sided'
+
+        b = self.a.filter(timestamp_gte=self.d1, timestamp_lte=self.d2)
+        self.assertEquals(self.a, b)
+        b = self.a.filter(timestamp_gt=self.d1, timestamp_lt=self.d2)
+        self.assertEquals(1, len(b))
+
+        
