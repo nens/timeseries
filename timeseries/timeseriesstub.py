@@ -292,6 +292,31 @@ class TimeseriesStub(timeseries.TimeSeries):
             events = []
         self._events = events
 
+    def get_start_date(self):
+        """Return the initial date and time.
+
+        The returned value must match the events data.
+        """
+        try:
+            return self._events[0][0]
+        except:
+            return datetime(1970, 1, 1)
+
+    def get_end_date(self):
+        """Return the final date and time.
+
+        The returned value must match the events data.
+        """
+        try:
+            return self._events[-1][0]
+        except:
+            return datetime(1970, 1, 1)
+
+    def sorted_event_items(self):
+        """return all items, sorted by key
+        """
+        return list(self.events())
+
     def get_value(self, date_time):
         """Return the value on the given date and time.
 
@@ -379,7 +404,7 @@ class TimeseriesStub(timeseries.TimeSeries):
         return equal
 
 
-class SparseTimeseriesStub:
+class SparseTimeseriesStub(timeseries.TimeSeries):
     """Represents a continuous time series.
 
     A continuous time series is a sequence of values ordered by date and time
@@ -401,6 +426,31 @@ class SparseTimeseriesStub:
         else:
             self.values = values
             self.previous_date = self.first_date + timedelta(len(values) - 1)
+
+    def get_start_date(self):
+        """Return the initial date and time.
+
+        The returned value must match the events data.
+        """
+        if not self.first_date is None:
+            return self.first_date
+        else:
+            return datetime(1970, 1, 1)
+
+    def get_end_date(self):
+        """Return the final date and time.
+
+        The returned value must match the events data.
+        """
+        if not self.first_date is None:
+            return self.first_date + timedelta(len(self.values) - 1)
+        else:
+            return datetime(1970, 1, 1)
+
+    def sorted_event_items(self):
+        """return all items, sorted by key
+        """
+        return list(self.events())
 
     def add_value(self, date_time, value):
         """Add the given value for the given date and time.
