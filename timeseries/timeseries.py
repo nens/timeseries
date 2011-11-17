@@ -222,6 +222,27 @@ class TimeSeries:
 
         return self.__getitem__(tstamp)
 
+    _f = {'lt': lambda x, y: x < y,
+          'lte': lambda x, y: x <= y,
+          'gt': lambda x, y: x > y,
+          'gte': lambda x, y: x >= y,
+          }
+
+    def filter(self, **kwargs):
+        """similar to django filter"""
+
+        result = self.clone(with_events=True)
+        for request in kwargs:
+            field, op = request.split("_")
+            value = kwargs[request]
+
+            assert(field == 'timestamp')
+
+            for timestamp in set(result._events):
+                if not self._f[op](timestamp, value):
+                    del result._events[timestamp]
+        return result
+
     def __setitem__(self, key, value):
         """behave as a dictionary (content is series events)
         """
@@ -237,6 +258,10 @@ class TimeSeries:
         """
 
         return self._events[key]
+
+    def __len__(self):
+        """behave as a container"""
+        return len(self._events)
 
     def get(self, key, default=None):
         """behave as a dictionary (content is series events)
@@ -495,6 +520,21 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
 
         return sorted(self._events.items())
 
+    def __eq__(self, other):
+        """series equal if all fields equal, included events
+        """
+
+        for k in dir(self):
+            v = getattr(self, k)
+            if type(v) not in [str, int, float, bool]:
+                continue
+            if v != getattr(other, k, None):
+                return False
+        for k, v in self._events.items():
+            if v != other.get(k):
+                return False
+        return True
+
     def __binop(self, other, op, null):
         """return self`op`other
 
@@ -620,4 +660,3 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                     flag_dates.append(timestamp)
                     flag_values.append(flag)
         return dates, values, flag_dates, flag_values
-
