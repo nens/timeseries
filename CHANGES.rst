@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.9 (unreleased)
+0.9 (2011-11-21)
 ----------------
 
 - Changed some functions of TimeSeries.
