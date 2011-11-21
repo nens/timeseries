@@ -540,7 +540,8 @@ def test_write_to_pi_file():
     if filename in os.listdir(testdata):
         os.remove(filepath)
 
-    assert obj[("SAP", "sluice-error")].get_events() == list(series.events())
+    stored_events = [(e[0], e[1][0]) for e in obj[("SAP", "sluice-error")].get_events()]
+    assert stored_events == list(series.events())
 
 def test_write_dict_to_pi_file():
     """Test to write a dict of TimeseriesStub-like objects to a PI XML file."""
@@ -562,4 +563,5 @@ def test_write_dict_to_pi_file():
         os.remove(filepath)
 
     for parameter_id, series in dict_series.iteritems():
-        assert obj[("SAP", parameter_id)].get_events() == list(series.events())
+        stored_events = [(e[0], e[1][0]) for e in obj[("SAP", parameter_id)].get_events()]
+        assert stored_events == list(series.events())

@@ -28,3 +28,6 @@ coverage.xml
 #Mr Developer
 .mr.developer.cfg
 src/
+
+#TAG files
+TAGS
