@@ -5,7 +5,9 @@ Changelog of timeseries
 0.9 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Changed some functions of TimeSeries.
+
+- Added tests.
 
 
 0.8.3 (2011-11-16)
