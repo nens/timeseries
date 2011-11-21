@@ -271,7 +271,7 @@ class TimeSeries:
         for series in qs:
             obj = TimeSeries()
             event = None
-            for event in series.event_set:
+            for event in series.event_set.all():
                 obj[event.timestamp] = (event.value, event.flag, event.comment)
             if event is not None:
                 ## nice: we ran the loop at least once, let's get
