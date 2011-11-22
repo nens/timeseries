@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.10 (unreleased)
+0.10 (2011-11-22)
 -----------------
 
 - Added abs(TimeSeries).
