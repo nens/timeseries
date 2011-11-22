@@ -863,6 +863,7 @@ def split_timeseries(timeseries):
             non_neg_timeseries.add_value(date, 0)
     return (non_pos_timeseries, non_neg_timeseries)
 
+
 def write_to_pi_file(*args, **kwargs):
     """Write the given timeseries in PI XML format.
 
@@ -886,7 +887,7 @@ def write_to_pi_file(*args, **kwargs):
         multiple_series.sort(key=lambda series: series.parameter_id)
     else:
         series = TimeSeries(*args, **kwargs)
-        series.sorted_event_items = lambda : list(multiple_series_stub.events())
+        series.sorted_event_items = lambda: list(multiple_series_stub.events())
         multiple_series = [series]
 
     TimeSeries.write_to_pi_file(kwargs['filename'], multiple_series)

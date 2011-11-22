@@ -61,6 +61,7 @@ class django:
             except IndexError:
                 raise StopIteration
 
+
 class WB:
     """contains water balance mock objects"""
 
@@ -196,7 +197,7 @@ class TimeSeriesTestSuite(TestCase):
         self.assertEqual(2, len(obj.events(d3)))
         self.assertEqual(2, len(obj.events(d1, d3)))
         self.assertEqual(3, len(handler.content))
-        self.assertEqual("timeseries.timeseries|WARNING|Call to deprecated function events.", 
+        self.assertEqual("timeseries.timeseries|WARNING|Call to deprecated function events.",
                          handler.content[0])
         root.removeHandler(handler)
 
@@ -888,5 +889,3 @@ class TimeSeriesSubsetting(TestCase):
         self.assertEquals(self.a, b)
         b = self.a.filter(timestamp_gt=self.d1, timestamp_lt=self.d2)
         self.assertEquals(1, len(b))
-
-        
