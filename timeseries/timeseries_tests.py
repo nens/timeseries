@@ -61,6 +61,7 @@ class django:
             except IndexError:
                 raise StopIteration
 
+
 class WB:
     """contains water balance mock objects"""
 
@@ -899,5 +900,3 @@ class TimeSeriesSubsetting(TestCase):
         self.assertEquals(self.a, b)
         b = self.a.filter(timestamp_gt=self.d1, timestamp_lt=self.d2)
         self.assertEquals(1, len(b))
-
-
