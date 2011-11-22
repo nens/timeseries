@@ -196,7 +196,7 @@ class TimeSeriesTestSuite(TestCase):
         self.assertEqual(2, len(obj.events(d3)))
         self.assertEqual(2, len(obj.events(d1, d3)))
         self.assertEqual(3, len(handler.content))
-        self.assertEqual("timeseries.timeseries|WARNING|Call to deprecated function events.", 
+        self.assertEqual("timeseries.timeseries|WARNING|Call to deprecated function events.",
                          handler.content[0])
         root.removeHandler(handler)
 
@@ -722,6 +722,7 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get(key, [0])[0] - self.b.get(key, [0])[0],
                               current[key][0])
 
+    # 200 series are the binary functions
     def test200(self):
         'timeseries * 1 gives same timeseries'
 
@@ -773,6 +774,15 @@ class TimeSeriesBinaryOperations(TestCase):
         for key in current._events:
             self.assertEquals(self.a.get_value(key) * self.b.get_value(key),
                               current[key][0])
+
+    # 300 series are the unary functions
+    def test300(self):
+        'abs(timeseries)'
+
+        current = abs(self.a)
+
+        for key in self.a._events:
+            self.assertEquals(abs(self.a.get_value(key)), current[key][0])
 
 
 class TimeSeriesSubsetting(TestCase):
@@ -839,4 +849,4 @@ class TimeSeriesSubsetting(TestCase):
         b = self.a.filter(timestamp_gt=self.d1, timestamp_lt=self.d2)
         self.assertEquals(1, len(b))
 
-        
+
