@@ -31,7 +31,7 @@ from timeseries import TimeSeries
 from timeseries import str_to_datetime
 from timeseries import _element_with_text
 import pkg_resources
-from datetime import datetime
+from datetime import datetime, timedelta
 from xml.dom.minidom import Document
 from xml.dom.minidom import Element
 from nens import mock
@@ -775,8 +775,59 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get_value(key) * self.b.get_value(key),
                               current[key][0])
 
-    # 300 series are the unary functions
+    # test clone
     def test300(self):
+        'test equality, different attributes -> False'
+
+        b = self.a.clone(with_events=True)
+        b.location_id = 'different'
+
+        self.assertFalse(b == self.a)
+
+    def test310(self):
+        'test equality, less events -> False'
+
+        b = self.a.clone(with_events=True)
+        del b._events[b._events.keys()[0]]
+
+        self.assertFalse(b == self.a)
+
+    def test320(self):
+        'test equality, more events -> False'
+
+        b = self.a.clone(with_events=True)
+        b._events[self.a._events.keys()[-1] + timedelta(0, 100)] = 1
+
+        self.assertFalse(b == self.a)
+
+    def test330(self):
+        'test equality, different timestamps -> False'
+
+        b = self.a.clone(with_events=True)
+        a = self.a.clone(with_events=True)
+        b._events[self.a._events.keys()[-1] + timedelta(0, 100)] = 1
+        a._events[self.a._events.keys()[-1] + timedelta(0, 200)] = 1
+
+        self.assertFalse(b == a)
+
+    def test340(self):
+        'test equality, different values -> False'
+
+        b = self.a.clone(with_events=True)
+        a = self.a.clone(with_events=True)
+        b._events[self.a._events.keys()[-1] + timedelta(0, 200)] = 1
+        a._events[self.a._events.keys()[-1] + timedelta(0, 200)] = 2
+
+        self.assertFalse(b == a)
+
+    def test350(self):
+        'test equality, nothing different -> True'
+
+        b = self.a.clone(with_events=True)
+        self.assertTrue(b == self.a)
+
+    # 400 series are the unary functions
+    def test400(self):
         'abs(timeseries)'
 
         current = abs(self.a)

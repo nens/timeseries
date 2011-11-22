@@ -533,6 +533,8 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                 continue
             if v != getattr(other, k, None):
                 return False
+        if len(self) != len(other):
+            return False
         for k, v in self._events.items():
             if v != other.get(k):
                 return False
