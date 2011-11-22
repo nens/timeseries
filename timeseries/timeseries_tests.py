@@ -723,6 +723,7 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get(key, [0])[0] - self.b.get(key, [0])[0],
                               current[key][0])
 
+    # 200 series are the binary functions
     def test200(self):
         'timeseries * 1 gives same timeseries'
 
@@ -775,6 +776,7 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get_value(key) * self.b.get_value(key),
                               current[key][0])
 
+    # test clone
     def test300(self):
         'test equality, different attributes -> False'
 
@@ -824,6 +826,15 @@ class TimeSeriesBinaryOperations(TestCase):
 
         b = self.a.clone(with_events=True)
         self.assertTrue(b == self.a)
+
+    # 400 series are the unary functions
+    def test400(self):
+        'abs(timeseries)'
+
+        current = abs(self.a)
+
+        for key in self.a._events:
+            self.assertEquals(abs(self.a.get_value(key)), current[key][0])
 
 
 class TimeSeriesSubsetting(TestCase):

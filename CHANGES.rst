@@ -5,7 +5,7 @@ Changelog of timeseries
 0.10 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added abs(TimeSeries).
 
 
 0.9 (2011-11-21)
