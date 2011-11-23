@@ -802,6 +802,46 @@ class TimeSeriesBinaryOperations(TestCase):
         current = a + b
         self.assertEquals(a[d2][0] + 2, current[key][0])
 
+    def test232(self):
+        'locf, a and b are completely disjoint'
+        a = self.a.clone()
+        a.is_locf = True
+        b = self.a.clone()
+        d1 = datetime(2011, 5, 15, 9, 35)
+        d2 = datetime(2011, 6, 15, 9, 35)
+        d3 = datetime(2011, 7, 15, 9, 35)
+        d4 = datetime(2011, 8, 15, 9, 35)
+        b[d1] = 2
+        b[d2] = 3
+        a[d3] = 1
+        a[d4] = 0
+
+        current = a + b
+        self.assertEquals(2, current[d1][0])
+        self.assertEquals(3, current[d2][0])
+        self.assertEquals(1, current[d3][0])
+        self.assertEquals(0, current[d4][0])
+
+    def test234(self):
+        'locf, a and b are completely disjoint'
+        a = self.a.clone()
+        a.is_locf = True
+        b = self.a.clone()
+        d1 = datetime(2011, 5, 15, 9, 35)
+        d2 = datetime(2011, 6, 15, 9, 35)
+        d3 = datetime(2011, 7, 15, 9, 35)
+        d4 = datetime(2011, 8, 15, 9, 35)
+        a[d1] = 2
+        a[d2] = 3
+        b[d3] = 1
+        b[d4] = 0
+
+        current = a + b
+        self.assertEquals(2, current[d1][0])
+        self.assertEquals(3, current[d2][0])
+        self.assertEquals(4, current[d3][0])
+        self.assertEquals(3, current[d4][0])
+
     # test clone
     def test300(self):
         'test equality, different attributes -> False'

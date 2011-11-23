@@ -569,14 +569,15 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         result = self.clone()
         keys = set(self.keys())
         defval = (null, 0, '')
+        locf = (null, 0, '')
         if isinstance(other, TimeSeries):
             keys = keys.union(other.keys())
             for key in sorted(keys):
                 try:
-                    value, flag, comment = self.get(key, defval)
+                    value, flag, comment = self.get(key, locf)
                     result[key] = (op(value, other.get(key, defval)[0]), flag, '')
                     if self.is_locf:
-                        defval = value, flag, comment
+                        locf = value, flag, comment
                 except:
                     print defval
                     pass
