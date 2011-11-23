@@ -506,7 +506,7 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                     'time': (self.get_end_date() +
                              offset).strftime("%T")}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'missVal', self.miss_val))
+        header.appendChild(_element_with_text(doc, 'missVal', str(self.miss_val)))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(_element_with_text(doc, 'stationName',
                                              self.station_name))
