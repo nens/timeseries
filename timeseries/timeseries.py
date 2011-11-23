@@ -575,11 +575,12 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
             for key in sorted(keys):
                 try:
                     value, flag, comment = self.get(key, locf)
-                    result[key] = (op(value, other.get(key, defval)[0]), flag, '')
                     if self.is_locf:
                         locf = value, flag, comment
+                        if key not in other.keys():
+                            continue
+                    result[key] = (op(value, other.get(key, defval)[0]), flag, '')
                 except:
-                    print defval
                     pass
         else:
             for key in keys:

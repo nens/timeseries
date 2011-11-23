@@ -803,7 +803,7 @@ class TimeSeriesBinaryOperations(TestCase):
         self.assertEquals(a[d2][0] + 2, current[key][0])
 
     def test232(self):
-        'locf, a and b are completely disjoint'
+        'locf, self and other are completely disjoint, result has only other keys'
         a = self.a.clone()
         a.is_locf = True
         b = self.a.clone()
@@ -819,11 +819,11 @@ class TimeSeriesBinaryOperations(TestCase):
         current = a + b
         self.assertEquals(2, current[d1][0])
         self.assertEquals(3, current[d2][0])
-        self.assertEquals(1, current[d3][0])
-        self.assertEquals(0, current[d4][0])
+        self.assertEquals(None, current.get(d3))
+        self.assertEquals(None, current.get(d4))
 
     def test234(self):
-        'locf, a and b are completely disjoint'
+        'locf, self and other are completely disjoint, result has only other keys'
         a = self.a.clone()
         a.is_locf = True
         b = self.a.clone()
@@ -837,8 +837,8 @@ class TimeSeriesBinaryOperations(TestCase):
         b[d4] = 0
 
         current = a + b
-        self.assertEquals(2, current[d1][0])
-        self.assertEquals(3, current[d2][0])
+        self.assertEquals(None, current.get(d1))
+        self.assertEquals(None, current.get(d2))
         self.assertEquals(4, current[d3][0])
         self.assertEquals(3, current[d4][0])
 
