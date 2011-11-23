@@ -178,6 +178,7 @@ class TimeSeries:
         ## key: timestamp, value: (double, flag, comment)
         self._events = dict(events)  # associate a timestamp to a
                                     # value, let's make a copy of it
+        self.is_locf = False
         pass
 
     def get_start_date(self):
@@ -556,13 +557,17 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
 
         result = self.clone()
         keys = set(self.keys())
+        defval = (null, 0, '')
         if isinstance(other, TimeSeries):
-            keys.union(other.keys())
-            for key in keys:
+            keys = keys.union(other.keys())
+            for key in sorted(keys):
                 try:
-                    flag = self[key][1]
-                    result[key] = (op(self.get_value(key), other.get_value(key)), flag, '')
+                    value, flag, comment = self.get(key, defval)
+                    result[key] = (op(value, other.get(key, defval)[0]), flag, '')
+                    if self.is_locf:
+                        defval = value, flag, comment
                 except:
+                    print defval
                     pass
         else:
             for key in keys:

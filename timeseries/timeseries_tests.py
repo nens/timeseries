@@ -619,6 +619,7 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(current.__dict__[attrib],
                               self.a.__dict__[attrib])
 
+    ## testing binary functions, PLUS
     def test100(self):
         'timeseries + 0 gives same timeseries'
 
@@ -671,6 +672,7 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get(key, [0])[0] + self.b.get(key, [0])[0],
                               current[key][0])
 
+    ## testing binary functions, MINUS
     def test130(self):
         'timeseries - 0 gives same timeseries'
 
@@ -723,7 +725,7 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get(key, [0])[0] - self.b.get(key, [0])[0],
                               current[key][0])
 
-    # 200 series are the binary functions
+    ## testing binary functions, MULT
     def test200(self):
         'timeseries * 1 gives same timeseries'
 
@@ -775,6 +777,20 @@ class TimeSeriesBinaryOperations(TestCase):
         for key in current._events:
             self.assertEquals(self.a.get_value(key) * self.b.get_value(key),
                               current[key][0])
+
+    ## testing binary functions, with is_locf
+    def test230(self):
+        'self is last observation carried forward.'
+
+        a = self.a.clone(with_events=True)
+        a.is_locf = True
+        b = self.a.clone(with_events=True)
+        key = datetime(1979, 8, 1, 9, 35)
+        d2 = datetime(1979, 5, 15, 9, 35)
+        b[key] = 2
+
+        current = a + b
+        self.assertEquals(a[d2][0] + 2, current[key][0])
 
     # test clone
     def test300(self):
