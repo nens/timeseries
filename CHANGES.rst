@@ -2,10 +2,30 @@ Changelog of timeseries
 ===================================================
 
 
-0.9 (unreleased)
-----------------
+0.11 (unreleased)
+-----------------
 
 - Nothing changed yet.
+
+
+0.10.1 (2011-11-22)
+-------------------
+
+- Nothing changed yet.
+
+
+0.10 (2011-11-22)
+-----------------
+
+- Added abs(TimeSeries).
+
+
+0.9 (2011-11-21)
+----------------
+
+- Changed some functions of TimeSeries.
+
+- Added tests.
 
 
 0.8.3 (2011-11-16)

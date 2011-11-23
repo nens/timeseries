@@ -514,12 +514,14 @@ class enumerate_eventsTestSuite(TestCase):
         """
         self.assertEqual([], list(enumerate_events(TimeseriesStub())))
 
+
 def test_sorted_event_keys():
     """Test the way to attach a method to a TimeseriesStub-like object."""
     timeseries = \
         SparseTimeseriesStub(datetime(2011, 10, 25), [10.0, 20.0, 30.0])
-    timeseries.sorted_event_items = lambda : list(timeseries.events())
+    timeseries.sorted_event_items = lambda: list(timeseries.events())
     assert timeseries.sorted_event_items() == list(timeseries.events())
+
 
 def test_write_to_pi_file():
     """Test the way to write a TimeseriesStub-like object to a PI XML file."""
@@ -543,11 +545,13 @@ def test_write_to_pi_file():
     stored_events = [(e[0], e[1][0]) for e in obj[("SAP", "sluice-error")].get_events()]
     assert stored_events == list(series.events())
 
+
 def test_write_dict_to_pi_file():
     """Test to write a dict of TimeseriesStub-like objects to a PI XML file."""
     dict_series =\
-        { "precipitation": SparseTimeseriesStub(datetime(2011, 10, 25), [10.0, 20.0, 30.0]),
-          "seepage": SparseTimeseriesStub(datetime(2011, 10, 25), [40.0, 50.0, 60.0])  }
+        {"precipitation": SparseTimeseriesStub(datetime(2011, 10, 25), [10.0, 20.0, 30.0]),
+         "seepage": SparseTimeseriesStub(datetime(2011, 10, 25), [40.0, 50.0, 60.0]),
+         }
 
     testdata = pkg_resources.resource_filename("timeseries", "testdata/")
     filename = "open-water-incoming-flows.xml"

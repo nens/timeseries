@@ -31,7 +31,7 @@ from timeseries import TimeSeries
 from timeseries import str_to_datetime
 from timeseries import _element_with_text
 import pkg_resources
-from datetime import datetime
+from datetime import datetime, timedelta
 from xml.dom.minidom import Document
 from xml.dom.minidom import Element
 from nens import mock
@@ -60,6 +60,7 @@ class django:
                 return self.content[self.current]
             except IndexError:
                 raise StopIteration
+
 
 class WB:
     """contains water balance mock objects"""
@@ -722,6 +723,7 @@ class TimeSeriesBinaryOperations(TestCase):
             self.assertEquals(self.a.get(key, [0])[0] - self.b.get(key, [0])[0],
                               current[key][0])
 
+    # 200 series are the binary functions
     def test200(self):
         'timeseries * 1 gives same timeseries'
 
@@ -773,6 +775,66 @@ class TimeSeriesBinaryOperations(TestCase):
         for key in current._events:
             self.assertEquals(self.a.get_value(key) * self.b.get_value(key),
                               current[key][0])
+
+    # test clone
+    def test300(self):
+        'test equality, different attributes -> False'
+
+        b = self.a.clone(with_events=True)
+        b.location_id = 'different'
+
+        self.assertFalse(b == self.a)
+
+    def test310(self):
+        'test equality, less events -> False'
+
+        b = self.a.clone(with_events=True)
+        del b._events[b._events.keys()[0]]
+
+        self.assertFalse(b == self.a)
+
+    def test320(self):
+        'test equality, more events -> False'
+
+        b = self.a.clone(with_events=True)
+        b._events[self.a._events.keys()[-1] + timedelta(0, 100)] = 1
+
+        self.assertFalse(b == self.a)
+
+    def test330(self):
+        'test equality, different timestamps -> False'
+
+        b = self.a.clone(with_events=True)
+        a = self.a.clone(with_events=True)
+        b._events[self.a._events.keys()[-1] + timedelta(0, 100)] = 1
+        a._events[self.a._events.keys()[-1] + timedelta(0, 200)] = 1
+
+        self.assertFalse(b == a)
+
+    def test340(self):
+        'test equality, different values -> False'
+
+        b = self.a.clone(with_events=True)
+        a = self.a.clone(with_events=True)
+        b._events[self.a._events.keys()[-1] + timedelta(0, 200)] = 1
+        a._events[self.a._events.keys()[-1] + timedelta(0, 200)] = 2
+
+        self.assertFalse(b == a)
+
+    def test350(self):
+        'test equality, nothing different -> True'
+
+        b = self.a.clone(with_events=True)
+        self.assertTrue(b == self.a)
+
+    # 400 series are the unary functions
+    def test400(self):
+        'abs(timeseries)'
+
+        current = abs(self.a)
+
+        for key in self.a._events:
+            self.assertEquals(abs(self.a.get_value(key)), current[key][0])
 
 
 class TimeSeriesSubsetting(TestCase):
@@ -838,5 +900,3 @@ class TimeSeriesSubsetting(TestCase):
         self.assertEquals(self.a, b)
         b = self.a.filter(timestamp_gt=self.d1, timestamp_lt=self.d2)
         self.assertEquals(1, len(b))
-
-

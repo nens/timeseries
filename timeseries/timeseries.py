@@ -351,7 +351,8 @@ class TimeSeries:
             if end is not None:
                 event_set = event_set.filter(timestamp__lte=end)
             for event in event_set:
-                obj[event.timestamp] = (event.value, event.flag, event.comment)
+                obj[event.timestamp] = (
+                    event.value, event.flag, event.comment)
             if event is not None:
                 ## nice: we ran the loop at least once.
                 obj.location_id = series.location.id
@@ -534,6 +535,8 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                 continue
             if v != getattr(other, k, None):
                 return False
+        if len(self) != len(other):
+            return False
         for k, v in self._events.items():
             if v != other.get(k):
                 return False
@@ -607,6 +610,15 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         """
 
         return self.__mul__(other)
+
+    def __abs__(self):
+        """absolute values"""
+        result = self.clone(with_events=True)
+        for k in set(result._events):
+            value = list(result.get_event(k))
+            value[0] = abs(value[0])
+            result[k] = tuple(value)
+        return result
 
     def clone(self, with_events=False):
         """return a copy of self
