@@ -571,13 +571,23 @@ class TimeSeriesOutput(TestCase):
         self.assertEquals(target.strip(), current.strip())
 
     def test024(self):
-        'TimeSeries.write_to_pi_file writes dict to stream'
+        'TimeSeries.write_to_pi_file writes dict to stream with 12 offset'
         stream = mock.Stream()
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         TimeSeries.write_to_pi_file(stream, obj, offset=12)
         target = file(self.testdata + "targetOutput12.xml").read()
         current = ''.join(stream.content)
         self.assertEquals(target.strip(), current.strip())
+
+    def test030(self):
+        'TimeSeries.write_to_pi_file appends children to stream'
+        stream = mock.Stream()
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        TimeSeries.write_to_pi_file(stream, obj, offset=0, append=True)
+        target_lines = file(self.testdata + "targetOutput00.xml").readlines()[2:-1]
+        target = ''.join(i.strip() for i in target_lines)
+        current = ''.join(i.strip() for i in ''.join(stream.content).split('\n'))
+        self.assertEquals(target, current)
 
 
 class TimeSeriesBinaryOperations(TestCase):

@@ -400,7 +400,7 @@ class TimeSeries:
         return [content[key] for key in sorted(content.keys())]
 
     @classmethod
-    def write_to_pi_file(cls, dest, data, offset=0):
+    def write_to_pi_file(cls, dest, data, offset=0, append=False):
         """write TimeSeries to a PI-format file.
 
         `data` is a collection of TimeSeries objects, anything like
@@ -413,6 +413,11 @@ class TimeSeries:
         `offset`, is a numeric offset from UTC.  it is the only
         property that goes into the pi file that is not owned by any
         of the TimeSeries objects.
+
+        `append` is a boolean.  set it to True if you want to append
+        your data to an already open and valid xml file.  the caller
+        takes responsibility for writing there the root element and
+        for closing it.  it is only used if `dest` is a stream.
         """
 
         if (isinstance(data, dict)):
@@ -454,7 +459,11 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
             writer = dest
 
         ## write document to open stream
-        doc.writexml(writer, encoding="UTF-8")
+        if writer == dest and append is True:
+            for child in root.getElementsByTagName('series'):
+                child.writexml(writer)
+        else:
+            doc.writexml(writer, encoding="UTF-8")
 
         ## if we created the writer here, we also need to close it,
         ## otherwise it's the caller's responsibility to do so.
