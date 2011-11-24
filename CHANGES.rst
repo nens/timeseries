@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.11 (unreleased)
+0.11 (2011-11-24)
 -----------------
 
 - Nothing changed yet.
