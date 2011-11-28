@@ -2,7 +2,13 @@ Changelog of timeseries
 ===================================================
 
 
-0.11 (unreleased)
+0.12 (unreleased)
+-----------------
+
+- Nothing changed yet.
+
+
+0.11 (2011-11-24)
 -----------------
 
 - Implemented option TimeSeries.is_locf, Last Observation Carried
