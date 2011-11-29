@@ -13,7 +13,8 @@ Changelog of timeseries
 0.11 (2011-11-24)
 -----------------
 
-- Nothing changed yet.
+- Implemented option TimeSeries.is_locf, Last Observation Carried
+  Forward: Now we can do operations on non-equidistant timeseries.
 
 
 0.10.1 (2011-11-22)
