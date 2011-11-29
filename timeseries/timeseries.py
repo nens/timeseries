@@ -498,13 +498,13 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                     'date': (self.get_start_date() +
                              offset).strftime("%Y-%m-%d"),
                     'time': (self.get_start_date() +
-                             offset).strftime("%T")}))
+                             offset).strftime("%H:%M:%S")}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(_element_with_text(doc, 'endDate', attr={
                     'date': (self.get_end_date() +
                              offset).strftime("%Y-%m-%d"),
                     'time': (self.get_end_date() +
-                             offset).strftime("%T")}))
+                             offset).strftime("%H:%M:%S")}))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
         header.appendChild(_element_with_text(doc, 'missVal', str(self.miss_val)))
         header.appendChild(doc.createTextNode(newl + addindent * 3))
@@ -521,7 +521,7 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
             value, flag = value[:2]  # ignore comment
             result.appendChild(_element_with_text(doc, 'event', attr={
                         'date': (key + offset).strftime("%Y-%m-%d"),
-                        'time': (key + offset).strftime("%T"),
+                        'time': (key + offset).strftime("%H:%M:%S"),
                         'value': value,
                         'flag': flag,
                         }))

@@ -5,7 +5,9 @@ Changelog of timeseries
 0.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixes the problem that under Windows, a PI XML file written by
+  TimeSeries.write_to_pi_file contained the empty string for each time tag
+  (#12).
 
 
 0.11 (2011-11-24)
