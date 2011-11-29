@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.12 (unreleased)
+0.12 (2011-11-29)
 -----------------
 
 - Fixes the problem that under Windows, a PI XML file written by
