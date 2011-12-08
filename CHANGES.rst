@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.13 (unreleased)
+0.13 (2011-12-08)
 -----------------
 
 - Improved detection of Django QuerySet.
