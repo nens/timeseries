@@ -383,7 +383,7 @@ class TimeSeries:
         if (isinstance(input, str) or hasattr(input, 'read')):
             ## a string or a file, maybe PI?
             result = cls._from_xml(input)
-        elif hasattr(input, 'count'):
+        elif hasattr(input, 'count') or hasattr(input, 'raw_query'):
             ## a django.db.models.query.QuerySet?
             result = cls._from_django_QuerySet(input, start, end)
         else:

@@ -5,7 +5,7 @@ Changelog of timeseries
 0.12 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Improved detection of Django QuerySet.
 
 
 0.11 (2011-11-24)
