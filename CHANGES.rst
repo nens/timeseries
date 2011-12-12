@@ -5,7 +5,8 @@ Changelog of timeseries
 0.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fixes the problem that a timeseries read from an XML file still contains
+  the values that are specified as missing values (#13).
 
 
 0.13 (2011-12-08)
