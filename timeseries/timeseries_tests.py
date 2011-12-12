@@ -193,9 +193,9 @@ class TimeSeriesTestSuite(TestCase):
         obj[d1] = 1.23
         obj[d3] = 0.23
         obj[d2] = -3.01
-        self.assertEqual(3, len(list(obj.events())))
-        self.assertEqual(2, len(list(obj.events(d3))))
-        self.assertEqual(2, len(list(obj.events(d1, d3))))
+        self.assertEqual(62, len(list(obj.events())))
+        self.assertEqual(34, len(list(obj.events(d3))))
+        self.assertEqual(29, len(list(obj.events(d1, d3))))
         self.assertEqual(3, len(handler.content))
         self.assertEqual("timeseries.timeseries|WARNING|Call to deprecated function events.",
                          handler.content[0])

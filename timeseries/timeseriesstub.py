@@ -35,6 +35,7 @@ from datetime import datetime
 from datetime import timedelta
 from math import fabs
 
+from timeseries import daily_events
 from timeseries import TimeSeries
 
 logger = logging.getLogger(__name__)
@@ -225,29 +226,6 @@ def average_monthly_events(timeseries):
 
     """
     return grouped_event_values(timeseries, 'month', average=True)
-
-
-def daily_events(events, default_value=0):
-    """Return a generator to iterate over all daily events.
-
-    The generator iterates over the events in the given order. If dates are
-    missing in between two successive events, this function fills in the
-    missing dates with the given default value.
-
-    Parameters:
-      *events*
-        sequence of (date or datetime, value) pairs ordered by date or datetime
-
-    """
-    # We initialize this variable to silence pyflakes.
-    date_to_yield = None
-    for date, value in events:
-        if not date_to_yield is None:
-            while date_to_yield < date:
-                yield date_to_yield, default_value
-                date_to_yield = date_to_yield + timedelta(1)
-        yield date, value
-        date_to_yield = date + timedelta(1)
 
 
 def daily_sticky_events(events):
