@@ -31,3 +31,13 @@ src/
 
 #TAG files
 TAGS
+
+# Ignore generated apache config files
+etc/*.apache.conf
+
+# Ignore emacs backups (** is shell-dependent)
+*~
+*/*~
+*/*/*~
+*/*/*/*~
+*/*/*/*/*~
