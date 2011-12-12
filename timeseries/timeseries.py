@@ -320,14 +320,18 @@ class TimeSeries:
                                'missVal', 'stationName', 'lat', 'lon',
                                'x', 'y', 'z', 'units'])
 
+            ignore_value = kwargs.get("miss_val", None)
+
             obj = TimeSeries(**kwargs)
             result[kwargs['location_id'], kwargs['parameter_id']] = obj
 
             for eventNode in seriesNode.getElementsByTagName("event"):
                 date = eventNode.getAttribute("date")
                 time = eventNode.getAttribute("time")
-                value = float(eventNode.getAttribute("value"))
-                obj[str_to_datetime(date, time, offsetValue)] = value
+                attr_value = eventNode.getAttribute("value")
+                if attr_value != ignore_value:
+                    value = float(attr_value)
+                    obj[str_to_datetime(date, time, offsetValue)] = value
 
         return result
 
