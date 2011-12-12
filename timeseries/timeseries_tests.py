@@ -419,6 +419,26 @@ class TimeSeriesInput(TestCase):
                 (str_to_datetime("2010-04-12", "00:00:00", 2), (22, 0, '')), ],
                           ts.get_events())
 
+    def test103(self):
+        """TimeSeries.as_dict reads events of series (d)
+
+        This time series contains two values that should be ignored.
+
+        """
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.no.missVal.xml")
+        ts = obj[("600", "P1212")]
+        self.assertEquals([
+                (str_to_datetime("2010-04-03", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-04", "00:00:00", 2), (22, 0, '')),
+                (str_to_datetime("2010-04-05", "00:00:00", 2), (17, 0, '')),
+                (str_to_datetime("2010-04-06", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-07", "00:00:00", 2), (21, 0, '')),
+                (str_to_datetime("2010-04-08", "00:00:00", 2), (-999.0, 0, '')),
+                (str_to_datetime("2010-04-09", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-10", "00:00:00", 2), (-999.0, 0, '')),
+                (str_to_datetime("2010-04-11", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-12", "00:00:00", 2), (22, 0, '')), ],
+                          ts.get_events())
     def test110(self):
         'TimeSeries.as_dict reads events of series (a)'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
