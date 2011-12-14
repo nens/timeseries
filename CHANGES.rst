@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.14 (unreleased)
+0.14 (2011-12-14)
 -----------------
 
 - Fixes the problem that a timeseries read from an XML file still contains
