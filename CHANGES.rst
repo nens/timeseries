@@ -11,6 +11,9 @@ Changelog of timeseries
 0.14 (2011-12-14)
 -----------------
 
+- Updates TimeSeries.events to fill in missing values as method
+  TimeseriesStub.events does (#14).
+
 - Fixes the problem that a timeseries read from an XML file still contains
   the values that are specified as missing values (#13).
 
