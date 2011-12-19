@@ -551,6 +551,24 @@ class TimeseriesRestrictedStub(TimeseriesStub):
         del kwargs["end_date"]
         TimeseriesStub.__init__(self, *args, **kwargs)
 
+    def get_start_date(self):
+        """Return the initial date and time.
+
+        The returned value must match the events data.
+        """
+        start_event = next(self.events(), (datetime(1970, 1, 1), 0))
+        return start_event[0]
+
+    def get_end_date(self):
+        """Return the final date and time.
+
+        The returned value must match the events data.
+        """
+        end_date = self.timeseries.get_end_date()
+        if end_date > self.end_date:
+            end_date = self.end_date
+        return end_date
+
     def events(self, start_date=None, end_date=None):
         """Return a generator to iterate over the requested events.
 

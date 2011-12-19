@@ -5,7 +5,9 @@ Changelog of timeseries
 0.15 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Updates TimeseriesRestrictedStub so its methods get_start_date and
+  get_end_date return the right value (#15).
+
 
 
 0.14 (2011-12-14)
