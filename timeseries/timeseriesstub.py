@@ -425,6 +425,10 @@ class SparseTimeseriesStub(timeseries.TimeSeries):
         else:
             return datetime(1970, 1, 1)
 
+    def __len__(self):
+        """behave as a container"""
+        return len(list(self.events()))
+
     def sorted_event_items(self):
         """return all items, sorted by key
         """
