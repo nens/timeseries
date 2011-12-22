@@ -8,6 +8,8 @@ Changelog of timeseries
 - Updates TimeseriesRestrictedStub so its methods get_start_date and
   get_end_date return the right value (#15).
 
+- Fixes the equality operator for SparseTimeseriesStub
+
 
 
 0.14 (2011-12-14)
