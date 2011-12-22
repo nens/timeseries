@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.15 (unreleased)
+0.15 (2011-12-22)
 -----------------
 
 - Updates TimeseriesRestrictedStub so its methods get_start_date and
