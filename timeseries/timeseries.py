@@ -127,16 +127,23 @@ class TimeSeries:
 
     """
 
-    def get_events(self, start_date=None, end_date=None):
+    def get_events(self, start_date=None, end_date=None, dates=None):
         """return all valid events in given range
+
+        If dates is provided, only return values of given dates
+        (ignore start_date and end_date).
         """
 
         if start_date is None:
             start_date = self.get_start_date()
         if end_date is None:
             end_date = self.get_end_date()
-        return sorted([(k, v) for (k, v) in self._events.items()
-                       if start_date <= k <= end_date])
+        if dates is None:
+            return sorted([(k, v) for (k, v) in self._events.items()
+                           if start_date <= k <= end_date])
+        else:
+            return sorted([(k, v) for (k, v) in self._events.items()
+                           if k in dates])
 
     @deprecated
     def events(self, start_date=None, end_date=None):

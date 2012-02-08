@@ -5,7 +5,8 @@ Changelog of timeseries
 0.14 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added option TimeSeries.get_events(dates=[...]) to get events from
+  only the provided list of dates.
 
 
 0.13 (2011-12-08)
