@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.16 (unreleased)
+0.16 (2012-02-08)
 -----------------
 
 - Added option TimeSeries.get_events(dates=[...]) to get events from
