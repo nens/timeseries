@@ -35,6 +35,7 @@ from datetime import datetime
 from datetime import timedelta
 from math import fabs
 
+from timeseries import daily_events
 from timeseries import TimeSeries
 
 logger = logging.getLogger(__name__)
@@ -225,29 +226,6 @@ def average_monthly_events(timeseries):
 
     """
     return grouped_event_values(timeseries, 'month', average=True)
-
-
-def daily_events(events, default_value=0):
-    """Return a generator to iterate over all daily events.
-
-    The generator iterates over the events in the given order. If dates are
-    missing in between two successive events, this function fills in the
-    missing dates with the given default value.
-
-    Parameters:
-      *events*
-        sequence of (date or datetime, value) pairs ordered by date or datetime
-
-    """
-    # We initialize this variable to silence pyflakes.
-    date_to_yield = None
-    for date, value in events:
-        if not date_to_yield is None:
-            while date_to_yield < date:
-                yield date_to_yield, default_value
-                date_to_yield = date_to_yield + timedelta(1)
-        yield date, value
-        date_to_yield = date + timedelta(1)
 
 
 def daily_sticky_events(events):
@@ -447,6 +425,10 @@ class SparseTimeseriesStub(timeseries.TimeSeries):
         else:
             return datetime(1970, 1, 1)
 
+    def __len__(self):
+        """behave as a container"""
+        return len(list(self.events()))
+
     def sorted_event_items(self):
         """return all items, sorted by key
         """
@@ -572,6 +554,24 @@ class TimeseriesRestrictedStub(TimeseriesStub):
         self.end_date = kwargs["end_date"]
         del kwargs["end_date"]
         TimeseriesStub.__init__(self, *args, **kwargs)
+
+    def get_start_date(self):
+        """Return the initial date and time.
+
+        The returned value must match the events data.
+        """
+        start_event = next(self.events(), (datetime(1970, 1, 1), 0))
+        return start_event[0]
+
+    def get_end_date(self):
+        """Return the final date and time.
+
+        The returned value must match the events data.
+        """
+        end_date = self.timeseries.get_end_date()
+        if end_date > self.end_date:
+            end_date = self.end_date
+        return end_date
 
     def events(self, start_date=None, end_date=None):
         """Return a generator to iterate over the requested events.

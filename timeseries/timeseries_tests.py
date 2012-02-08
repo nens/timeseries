@@ -193,9 +193,9 @@ class TimeSeriesTestSuite(TestCase):
         obj[d1] = 1.23
         obj[d3] = 0.23
         obj[d2] = -3.01
-        self.assertEqual(3, len(list(obj.events())))
-        self.assertEqual(2, len(list(obj.events(d3))))
-        self.assertEqual(2, len(list(obj.events(d1, d3))))
+        self.assertEqual(62, len(list(obj.events())))
+        self.assertEqual(34, len(list(obj.events(d3))))
+        self.assertEqual(29, len(list(obj.events(d1, d3))))
         self.assertEqual(3, len(handler.content))
         self.assertEqual("timeseries.timeseries|WARNING|Call to deprecated function events.",
                          handler.content[0])
@@ -400,6 +400,45 @@ class TimeSeriesInput(TestCase):
                 (str_to_datetime("2010-04-10", "00:00:00", 2), (24, 0, '')), ],
                           ts.get_events())
 
+    def test102(self):
+        """TimeSeries.as_dict reads events of series (c)
+
+        This time series contains two values that should be ignored.
+
+        """
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.missVal.xml")
+        ts = obj[("600", "P1212")]
+        self.assertEquals([
+                (str_to_datetime("2010-04-03", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-04", "00:00:00", 2), (22, 0, '')),
+                (str_to_datetime("2010-04-05", "00:00:00", 2), (17, 0, '')),
+                (str_to_datetime("2010-04-06", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-07", "00:00:00", 2), (21, 0, '')),
+                (str_to_datetime("2010-04-09", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-11", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-12", "00:00:00", 2), (22, 0, '')), ],
+                          ts.get_events())
+
+    def test103(self):
+        """TimeSeries.as_dict reads events of series (d)
+
+        This time series contains two values that should be ignored.
+
+        """
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.no.missVal.xml")
+        ts = obj[("600", "P1212")]
+        self.assertEquals([
+                (str_to_datetime("2010-04-03", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-04", "00:00:00", 2), (22, 0, '')),
+                (str_to_datetime("2010-04-05", "00:00:00", 2), (17, 0, '')),
+                (str_to_datetime("2010-04-06", "00:00:00", 2), (20, 0, '')),
+                (str_to_datetime("2010-04-07", "00:00:00", 2), (21, 0, '')),
+                (str_to_datetime("2010-04-08", "00:00:00", 2), (-999.0, 0, '')),
+                (str_to_datetime("2010-04-09", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-10", "00:00:00", 2), (-999.0, 0, '')),
+                (str_to_datetime("2010-04-11", "00:00:00", 2), (24, 0, '')),
+                (str_to_datetime("2010-04-12", "00:00:00", 2), (22, 0, '')), ],
+                          ts.get_events())
     def test110(self):
         'TimeSeries.as_dict reads events of series (a)'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
@@ -428,6 +467,25 @@ class TimeSeriesInput(TestCase):
                           ts.get_values())
 
     def test112(self):
+        """TimeSeries.as_dict reads events of series (c)
+
+        This time series contains two values that should be ignored.
+
+        """
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.missVal.xml")
+        ts = obj[("600", "P1212")]
+        self.assertEquals([
+                (str_to_datetime("2010-04-03", "00:00:00", 2), 20),
+                (str_to_datetime("2010-04-04", "00:00:00", 2), 22),
+                (str_to_datetime("2010-04-05", "00:00:00", 2), 17),
+                (str_to_datetime("2010-04-06", "00:00:00", 2), 20),
+                (str_to_datetime("2010-04-07", "00:00:00", 2), 21),
+                (str_to_datetime("2010-04-09", "00:00:00", 2), 24),
+                (str_to_datetime("2010-04-11", "00:00:00", 2), 24),
+                (str_to_datetime("2010-04-12", "00:00:00", 2), 22), ],
+                          ts.get_values())
+
+    def test113(self):
         'TimeSeries.get_values with only requested timeseries'
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         ts = obj[("600", "P2504")]

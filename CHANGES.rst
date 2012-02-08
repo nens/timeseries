@@ -2,11 +2,31 @@ Changelog of timeseries
 ===================================================
 
 
-0.14 (unreleased)
+0.16 (unreleased)
 -----------------
 
 - Added option TimeSeries.get_events(dates=[...]) to get events from
   only the provided list of dates.
+
+
+0.15 (2011-12-22)
+-----------------
+
+- Updates TimeseriesRestrictedStub so its methods get_start_date and
+  get_end_date return the right value (#15).
+
+- Fixes the equality operator for SparseTimeseriesStub
+
+
+
+0.14 (2011-12-14)
+-----------------
+
+- Updates TimeSeries.events to fill in missing values as method
+  TimeseriesStub.events does (#14).
+
+- Fixes the problem that a timeseries read from an XML file still contains
+  the values that are specified as missing values (#13).
 
 
 0.13 (2011-12-08)

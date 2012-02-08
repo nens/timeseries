@@ -38,6 +38,28 @@ import operator
 
 logger = logging.getLogger(__name__)
 
+def daily_events(events, default_value=0):
+    """Return a generator to iterate over all daily events.
+
+    The generator iterates over the events in the given order. If dates are
+    missing in between two successive events, this function fills in the
+    missing dates with the given default value.
+
+    Parameters:
+      *events*
+        sequence of (date or datetime, value) pairs ordered by date or datetime
+
+    """
+    # We initialize this variable to silence pyflakes.
+    date_to_yield = None
+    for date, value in events:
+        if not date_to_yield is None:
+            while date_to_yield < date:
+                yield date_to_yield, default_value
+                date_to_yield = date_to_yield + timedelta(1)
+        yield date, value
+        date_to_yield = date + timedelta(1)
+
 
 def deprecated(func):
     """This is a decorator which can be used to mark functions
@@ -151,8 +173,9 @@ class TimeSeries:
 
         Only legacy code uses this function.
         """
-        for value in self.get_values(start_date, end_date):
-            yield value
+        date_value_pairs = self.get_values(start_date, end_date)
+        for date, value in daily_events(date_value_pairs):
+            yield date, value
 
     def get_values(self, start_date=None, end_date=None):
         """return only values of events in given range
@@ -327,14 +350,18 @@ class TimeSeries:
                                'missVal', 'stationName', 'lat', 'lon',
                                'x', 'y', 'z', 'units'])
 
+            ignore_value = kwargs.get("miss_val", None)
+
             obj = TimeSeries(**kwargs)
             result[kwargs['location_id'], kwargs['parameter_id']] = obj
 
             for eventNode in seriesNode.getElementsByTagName("event"):
                 date = eventNode.getAttribute("date")
                 time = eventNode.getAttribute("time")
-                value = float(eventNode.getAttribute("value"))
-                obj[str_to_datetime(date, time, offsetValue)] = value
+                attr_value = eventNode.getAttribute("value")
+                if attr_value != ignore_value:
+                    value = float(attr_value)
+                    obj[str_to_datetime(date, time, offsetValue)] = value
 
         return result
 
@@ -554,8 +581,8 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                 return False
         if len(self) != len(other):
             return False
-        for k, v in self._events.items():
-            if v != other.get(k):
+        for (a, b) in zip(self.sorted_event_items(), other.sorted_event_items()):
+            if a != b:
                 return False
         return True
 
