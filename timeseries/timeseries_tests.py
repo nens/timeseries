@@ -485,6 +485,17 @@ class TimeSeriesInput(TestCase):
                 (str_to_datetime("2010-04-12", "00:00:00", 2), 22), ],
                           ts.get_values())
 
+    def test113(self):
+        'TimeSeries.get_values with only requested timeseries'
+        obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
+        ts = obj[("600", "P2504")]
+        dates = [str_to_datetime("2010-04-05", "00:00:00", 2),
+                 str_to_datetime("2010-04-10", "00:00:00", 2)]
+        self.assertEquals([
+                (str_to_datetime("2010-04-05", "00:00:00", 2), (17, 0, '')),
+                (str_to_datetime("2010-04-10", "00:00:00", 2), (24, 0, '')), ],
+                          ts.get_events(dates=dates))
+
     def test200(self):
         'TimeSeries.as_list reads file given its name'
         obj = TimeSeries.as_list(self.testdata + "read.PI.timezone.2.xml")

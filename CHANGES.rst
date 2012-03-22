@@ -2,11 +2,18 @@ Changelog of timeseries
 ===================================================
 
 
-0.16 (unreleased)
+0.17 (unreleased)
 -----------------
 
 - Sets the logging level to log the use of a deprecated function to debug (from
   warn) (nens/vss#92)
+
+
+0.16 (2012-02-08)
+-----------------
+
+- Added option TimeSeries.get_events(dates=[...]) to get events from
+  only the provided list of dates.
 
 
 0.15 (2011-12-22)
