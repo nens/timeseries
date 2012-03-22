@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.17 (unreleased)
+0.17 (2012-03-22)
 -----------------
 
 - Sets the logging level to log the use of a deprecated function to debug (from
