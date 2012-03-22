@@ -66,7 +66,7 @@ def deprecated(func):
     as deprecated. It will result in a warning being emitted
     when the function is used."""
     def new_func(*args, **kwargs):
-        logger.warn("Call to deprecated function %s." % func.__name__)
+        logger.debug("Call to deprecated function %s." % func.__name__)
         return func(*args, **kwargs)
     new_func.__name__ = func.__name__
     new_func.__doc__ = func.__doc__

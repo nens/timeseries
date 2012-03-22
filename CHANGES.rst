@@ -5,7 +5,8 @@ Changelog of timeseries
 0.16 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Sets the logging level to log the use of a deprecated function to debug (from
+  warn) (nens/vss#92)
 
 
 0.15 (2011-12-22)
