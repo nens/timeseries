@@ -30,6 +30,7 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
+from xml.etree import ElementTree
 from xml.dom.minidom import parse
 from xml.dom.minidom import Document
 import re
@@ -37,6 +38,20 @@ import operator
 
 
 logger = logging.getLogger(__name__)
+
+def convert_dom(dom):
+    """
+    strip all namespaces from tags.
+    Replace None with '' in text.
+
+    Want to put this in timseries.utils or so, but import failed.
+    """
+    root = dom.getroot()
+    for e in root.iter():
+        e.tag = re.sub('{.*}', '', e.tag)
+        if e.tag is None:
+            e.tag = ''
+
 
 def daily_events(events, default_value=0):
     """Return a generator to iterate over all daily events.
@@ -133,6 +148,15 @@ def _element_with_text(doc, tag, content='', attr={}):
     for key, value in attr.items():
         result.setAttribute(key, str(value))
     return result
+
+
+def _append_element_to(element, tag, text='', attrib={}):
+    """
+    Append child to element with tag and text.
+    """
+    child = ElementTree.Element(tag, attrib=attrib)
+    child.text = text
+    element.append(child)
 
 
 class TimeSeries:
@@ -322,28 +346,30 @@ class TimeSeries:
         """
 
         def getText(node):
-            return "".join(t.nodeValue for t in node.childNodes
-                           if t.nodeType == t.TEXT_NODE)
+            return "".join(node.itertext())
 
         def fromNode(node, names):
             '''extract text from included elements, replace capital
             letter with underscore + lower case letter, return
             dictionary'''
 
-            return dict((pythonify(n.nodeName), getText(n))
-                        for n in node.childNodes
-                        if n.nodeName in set(names))
+            return dict((pythonify(n.tag), getText(n))
+                        for n in node.getchildren()
+                        if n.tag in set(names))
 
-        dom = parse(stream)
-        root = dom.childNodes[0]
+        from xml.etree import ElementTree
+        dom = ElementTree.parse(stream)
+        convert_dom(dom)
+        
+        root = dom.getroot()
 
-        offsetNode = root.getElementsByTagName("timeZone")[0]
+        offsetNode = root.find("timeZone")
         offsetValue = float(getText(offsetNode))
 
         result = {}
 
-        for seriesNode in root.getElementsByTagName("series"):
-            headerNode = seriesNode.getElementsByTagName("header")[0]
+        for seriesNode in root.findall("series"):
+            headerNode = seriesNode.find("header")
 
             kwargs = fromNode(headerNode,
                               ['type', 'locationId', 'parameterId',
@@ -355,10 +381,10 @@ class TimeSeries:
             obj = TimeSeries(**kwargs)
             result[kwargs['location_id'], kwargs['parameter_id']] = obj
 
-            for eventNode in seriesNode.getElementsByTagName("event"):
-                date = eventNode.getAttribute("date")
-                time = eventNode.getAttribute("time")
-                attr_value = eventNode.getAttribute("value")
+            for eventNode in seriesNode.findall("event"):
+                date = eventNode.attrib["date"]
+                time = eventNode.attrib["time"]
+                attr_value = eventNode.attrib["value"]
                 if attr_value != ignore_value:
                     value = float(attr_value)
                     obj[str_to_datetime(date, time, offsetValue)] = value
@@ -463,6 +489,16 @@ class TimeSeries:
         root = doc.createElement("TimeSeries")
         doc.appendChild(root)
 
+        
+        root_new = ElementTree.Element('TimeSeries')
+        root_new.attrib.update({
+            'xsi:schemaLocation': "http://www.wldelft.nl/fews/PI \
+http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
+            'version': "1.2",
+            'xmlns': "http://www.wldelft.nl/fews/PI",
+            'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance",
+            })
+
         ## add references to internet resources for schema checking
         for key, value in {
             'xsi:schemaLocation': "http://www.wldelft.nl/fews/PI \
@@ -477,12 +513,16 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         root.appendChild(doc.createTextNode('\n  '))
         root.appendChild(_element_with_text(doc, 'timeZone', '%0.2f' % offset))
 
+        _append_element_to(root_new, 'timeZone', '%0.2f' % offset)
+
         offset = timedelta(0, offset * 3600)
 
         ## add all series elements
         for item in data:
             root.appendChild(doc.createTextNode('\n  '))
             root.appendChild(item._as_element(doc, offset=offset))
+
+            
         root.appendChild(doc.createTextNode('\n'))
 
         ## if dest is a name of a file, open it for writing and
