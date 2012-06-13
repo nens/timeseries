@@ -5,7 +5,7 @@ Changelog of timeseries
 0.18 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Use etree instead of minidom for parsing and writing timeseries.
 
 
 0.17 (2012-03-22)
