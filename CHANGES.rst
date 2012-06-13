@@ -6,6 +6,7 @@ Changelog of timeseries
 -----------------
 
 - Use etree instead of minidom for parsing and writing timeseries.
+- Fix some tests and remove some overdone tests.
 
 
 0.17 (2012-03-22)

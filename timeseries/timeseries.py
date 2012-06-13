@@ -536,10 +536,7 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
             #for child in root.getElementsByTagName('series'):
                 #child.writexml(writer)
             for child in root.findall('series'):
-                ElementTree.ElementTree(element=child).write(
-                    writer,
-                    encoding='UTF-8',
-                )
+                writer.write(ElementTree.tostring(child))
         else:
             #doc.writexml(writer, encoding="UTF-8")
             indent(root)
