@@ -30,13 +30,27 @@
 import logging
 from datetime import datetime
 from datetime import timedelta
-from xml.dom.minidom import parse
-from xml.dom.minidom import Document
+from xml.etree import ElementTree
 import re
 import operator
 
 
 logger = logging.getLogger(__name__)
+
+
+def convert_dom(dom):
+    """
+    strip all namespaces from tags.
+    Replace None with '' in text.
+
+    Want to put this in timseries.utils or so, but import failed.
+    """
+    root = dom.getroot()
+    for e in root.iter():
+        e.tag = re.sub('{.*}', '', e.tag)
+        if e.tag is None:
+            e.tag = ''
+
 
 def daily_events(events, default_value=0):
     """Return a generator to iterate over all daily events.
@@ -133,6 +147,15 @@ def _element_with_text(doc, tag, content='', attr={}):
     for key, value in attr.items():
         result.setAttribute(key, str(value))
     return result
+
+
+def _append_element_to(element, tag, text='', attrib={}):
+    """
+    Append child to element with tag and text.
+    """
+    child = ElementTree.Element(tag, attrib=attrib)
+    child.text = text
+    element.append(child)
 
 
 class TimeSeries:
@@ -327,28 +350,30 @@ class TimeSeries:
         """
 
         def getText(node):
-            return "".join(t.nodeValue for t in node.childNodes
-                           if t.nodeType == t.TEXT_NODE)
+            return "".join(node.itertext())
 
         def fromNode(node, names):
             '''extract text from included elements, replace capital
             letter with underscore + lower case letter, return
             dictionary'''
 
-            return dict((pythonify(n.nodeName), getText(n))
-                        for n in node.childNodes
-                        if n.nodeName in set(names))
+            return dict((pythonify(n.tag), getText(n))
+                        for n in node.getchildren()
+                        if n.tag in set(names))
 
-        dom = parse(stream)
-        root = dom.childNodes[0]
+        from xml.etree import ElementTree
+        dom = ElementTree.parse(stream)
+        convert_dom(dom)
 
-        offsetNode = root.getElementsByTagName("timeZone")[0]
+        root = dom.getroot()
+
+        offsetNode = root.find("timeZone")
         offsetValue = float(getText(offsetNode))
 
         result = {}
 
-        for seriesNode in root.getElementsByTagName("series"):
-            headerNode = seriesNode.getElementsByTagName("header")[0]
+        for seriesNode in root.findall("series"):
+            headerNode = seriesNode.find("header")
 
             kwargs = fromNode(headerNode,
                               ['type', 'locationId', 'parameterId',
@@ -360,10 +385,10 @@ class TimeSeries:
             obj = TimeSeries(**kwargs)
             result[kwargs['location_id'], kwargs['parameter_id']] = obj
 
-            for eventNode in seriesNode.getElementsByTagName("event"):
-                date = eventNode.getAttribute("date")
-                time = eventNode.getAttribute("time")
-                attr_value = eventNode.getAttribute("value")
+            for eventNode in seriesNode.findall("event"):
+                date = eventNode.attrib["date"]
+                time = eventNode.attrib["time"]
+                attr_value = eventNode.attrib["value"]
                 if attr_value != ignore_value:
                     value = float(attr_value)
                     obj[str_to_datetime(date, time, offsetValue)] = value
@@ -463,32 +488,25 @@ class TimeSeries:
             data = [data[key] for key in sorted(data.keys())]
 
         ## create xml document and add it its root element
-        doc = Document()
-
-        root = doc.createElement("TimeSeries")
-        doc.appendChild(root)
+        root = ElementTree.Element('TimeSeries')
 
         ## add references to internet resources for schema checking
-        for key, value in {
+        root.attrib.update({
             'xsi:schemaLocation': "http://www.wldelft.nl/fews/PI \
 http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
             'version': "1.2",
             'xmlns': "http://www.wldelft.nl/fews/PI",
             'xmlns:xsi': "http://www.w3.org/2001/XMLSchema-instance",
-            }.items():
-            root.setAttribute(key, value)
+        })
 
         ## add single timeZone element
-        root.appendChild(doc.createTextNode('\n  '))
-        root.appendChild(_element_with_text(doc, 'timeZone', '%0.2f' % offset))
+        _append_element_to(root, 'timeZone', '%0.2f' % offset)
 
         offset = timedelta(0, offset * 3600)
 
         ## add all series elements
         for item in data:
-            root.appendChild(doc.createTextNode('\n  '))
-            root.appendChild(item._as_element(doc, offset=offset))
-        root.appendChild(doc.createTextNode('\n'))
+            root.append(item._as_element(offset=offset))
 
         ## if dest is a name of a file, open it for writing and
         ## remember we should close it before returning.
@@ -497,75 +515,83 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
         else:
             writer = dest
 
+        def indent(elem, level=0):
+            """
+            from
+            http://www.python-forum.org/pythonforum/viewtopic.php?f=19&t=4207
+            with fixes.
+            """
+            i = "\n" + level * "  "
+            if len(elem):
+                if not elem.text or not elem.text.strip():
+                    elem.text = i + "  "
+                for child in elem:
+                    indent(child, level + 1)
+                # Last child has different tail
+                if not child.tail or not child.tail.strip():
+                    child.tail = i
+                if not elem.tail or not elem.tail.strip():
+                    elem.tail = i
+            else:
+                if level and (not elem.tail or not elem.tail.strip()):
+                    elem.tail = i
+
         ## write document to open stream
         if writer == dest and append is True:
-            for child in root.getElementsByTagName('series'):
-                child.writexml(writer)
+            #for child in root.getElementsByTagName('series'):
+                #child.writexml(writer)
+            for child in root.findall('series'):
+                writer.write(ElementTree.tostring(child))
         else:
-            doc.writexml(writer, encoding="UTF-8")
+            #doc.writexml(writer, encoding="UTF-8")
+            indent(root)
+            ElementTree.ElementTree(element=root).write(
+                writer,
+                encoding='UTF-8',
+            )
 
         ## if we created the writer here, we also need to close it,
         ## otherwise it's the caller's responsibility to do so.
         if (writer != dest):
             writer.close()
 
-    def _as_element(self, doc, addindent="  ", newl="\n", offset=timedelta()):
+    def _as_element(self, offset=timedelta()):
         """create minidom object representing self
 
         private method
         """
 
-        result = doc.createElement("series")
+        result = ElementTree.Element('series')
+        header = ElementTree.Element('header')
+        result.append(header)
 
-        header = doc.createElement("header")
-        result.appendChild(doc.createTextNode(newl + addindent * 2))
-        result.appendChild(header)
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-
-        header.appendChild(_element_with_text(doc, 'type', self.type))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'locationId',
-                                             self.location_id))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'parameterId',
-                                             self.parameter_id))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'timeStep', attr={
-                    'unit': 'nonequidistant'}))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'startDate', attr={
-                    'date': (self.get_start_date() +
-                             offset).strftime("%Y-%m-%d"),
-                    'time': (self.get_start_date() +
-                             offset).strftime("%H:%M:%S")}))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'endDate', attr={
-                    'date': (self.get_end_date() +
-                             offset).strftime("%Y-%m-%d"),
-                    'time': (self.get_end_date() +
-                             offset).strftime("%H:%M:%S")}))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'missVal', str(self.miss_val)))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'stationName',
-                                             self.station_name))
-        header.appendChild(doc.createTextNode(newl + addindent * 3))
-        header.appendChild(_element_with_text(doc, 'units', self.units))
-        header.appendChild(doc.createTextNode(newl + addindent * 2))
+        _append_element_to(header, 'type', self.type)
+        _append_element_to(header, 'locationId', self.location_id)
+        _append_element_to(header, 'parameterId', self.parameter_id)
+        _append_element_to(header, 'timeStep', attrib={
+            'unit': 'nonequidistant'
+        })
+        _append_element_to(header, 'startDate', attrib={
+            'date': (self.get_start_date() + offset).strftime("%Y-%m-%d"),
+            'time': (self.get_start_date() + offset).strftime("%H:%M:%S")})
+        _append_element_to(header, 'endDate', attrib={
+            'date': (self.get_end_date() + offset).strftime("%Y-%m-%d"),
+            'time': (self.get_end_date() + offset).strftime("%H:%M:%S")})
+        _append_element_to(header, 'missVal', str(self.miss_val))
+        _append_element_to(header, 'stationName', self.station_name)
+        _append_element_to(header, 'units', self.units)
 
         for key, value in self.sorted_event_items():
-            result.appendChild(doc.createTextNode(newl + addindent * 2))
             if not isinstance(value, tuple):
                 value = (value, 0, '')
             value, flag = value[:2]  # ignore comment
-            result.appendChild(_element_with_text(doc, 'event', attr={
-                        'date': (key + offset).strftime("%Y-%m-%d"),
-                        'time': (key + offset).strftime("%H:%M:%S"),
-                        'value': value,
-                        'flag': flag,
-                        }))
+            _append_element_to(result, 'event', attrib={
+                'date': (key + offset).strftime("%Y-%m-%d"),
+                'time': (key + offset).strftime("%H:%M:%S"),
+                'value': str(value),
+                'flag': str(flag),
+            })
 
-        result.appendChild(doc.createTextNode(newl + addindent))
         return result
 
     def sorted_event_items(self):
@@ -586,7 +612,10 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                 return False
         if len(self) != len(other):
             return False
-        for (a, b) in zip(self.sorted_event_items(), other.sorted_event_items()):
+        for (a, b) in zip(
+            self.sorted_event_items(),
+            other.sorted_event_items(),
+        ):
             if a != b:
                 return False
         return True
@@ -618,7 +647,11 @@ http://fews.wldelft.nl/schemas/version1.0/pi-schemas/pi_timeseries.xsd",
                         locf = value, flag, comment
                         if key not in other.keys():
                             continue
-                    result[key] = (op(value, other.get(key, defval)[0]), flag, '')
+                    result[key] = (
+                        op(value, other.get(key, defval)[0]),
+                        flag,
+                        '',
+                    )
                 except:
                     pass
         else:

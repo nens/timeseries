@@ -29,11 +29,10 @@
 from unittest import TestCase
 from timeseries import TimeSeries
 from timeseries import str_to_datetime
-from timeseries import _element_with_text
+from timeseries import _append_element_to
 import pkg_resources
 from datetime import datetime, timedelta
-from xml.dom.minidom import Document
-from xml.dom.minidom import Element
+from xml.etree import ElementTree
 from nens import mock
 import os
 import logging
@@ -262,33 +261,29 @@ class TimeSeriesTestSuite(TestCase):
         'represent empty TimeSeries as Element'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
-        doc = Document()
-        current = obj._as_element(doc)
-        self.assertTrue(isinstance(current, Element))
-        self.assertEquals('series', current.tagName)
-        childElements = [i
-                         for i in current.childNodes
-                         if i.nodeType != i.TEXT_NODE]
+        
+        current = obj._as_element()
+        self.assertTrue(isinstance(current, ElementTree.Element))
+        self.assertEquals('series', current.tag)
+        childElements = [i for i in current.getchildren()]
         self.assertEquals(1, len(childElements))
-        self.assertEquals(['header'], [i.tagName for i in childElements])
-        self.assertEquals({}, dict(current.attributes))
+        self.assertEquals(['header'], [i.tag for i in childElements])
+        self.assertEquals({}, current.attrib)
 
     def test_201(self):
         'represent TimeSeries with two events as Element'
 
         obj = TimeSeries(location_id='loc', parameter_id='par')
         obj[datetime(1980, 11, 23, 19, 35)] = -1
-        doc = Document()
-        current = obj._as_element(doc)
-        self.assertTrue(isinstance(current, Element))
-        self.assertEquals('series', current.tagName)
-        childElements = [i
-                         for i in current.childNodes
-                         if i.nodeType != i.TEXT_NODE]
+        
+        current = obj._as_element()
+        self.assertTrue(isinstance(current, ElementTree.Element))
+        self.assertEquals('series', current.tag)
+        childElements = [i for i in current.getchildren()]
         self.assertEquals(2, len(childElements))
         self.assertEquals(['header', 'event'],
-                          [i.tagName for i in childElements])
-        self.assertEquals({}, dict(current.attributes))
+                          [i.tag for i in childElements])
+        self.assertEquals({}, current.attrib)
 
 
 class TestUtilityFunctions(TestCase):
@@ -308,37 +303,6 @@ class TestUtilityFunctions(TestCase):
                           str_to_datetime("2010-04-03", "12:00:00", 1))
         self.assertEquals(datetime(2012, 02, 29, 20),
                           str_to_datetime("2012-03-01", "00:00:00", 4))
-
-    def test100(self):
-        '_element_with_text without text, without attributes'
-
-        doc = Document()
-        obj = _element_with_text(doc, 'test')
-        self.assertTrue(isinstance(obj, Element))
-        self.assertEquals('test', obj.tagName)
-        self.assertEquals([], obj.childNodes)
-        self.assertEquals({}, dict(obj.attributes))
-
-    def test101(self):
-        '_element_with_text without text, with attributes'
-
-        doc = Document()
-        obj = _element_with_text(doc, 'test', attr={'a': 2})
-        self.assertTrue(isinstance(obj, Element))
-        self.assertEquals('test', obj.tagName)
-        self.assertEquals([], obj.childNodes)
-        self.assertEquals('2', obj.getAttribute('a'))
-
-    def test102(self):
-        '_element_with_text with text, without attributes'
-
-        doc = Document()
-        obj = _element_with_text(doc, 'test', "attr={'a': 2}")
-        self.assertTrue(isinstance(obj, Element))
-        self.assertEquals('test', obj.tagName)
-        self.assertEquals(1, len(obj.childNodes))
-        self.assertEquals("attr={'a': 2}",
-                          ''.join(i.nodeValue for i in obj.childNodes))
 
 
 class TimeSeriesInput(TestCase):
@@ -622,7 +586,7 @@ class TimeSeriesOutput(TestCase):
         self.assertEquals(target.strip(), current.strip())
 
     def test020(self):
-        'TimeSeries.write_to_pi_file writes dict to stream'
+        'TimeSeries.write_to_pi_file writes dict to stream with 2 offset'
         stream = mock.Stream()
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         TimeSeries.write_to_pi_file(stream, obj, offset=2)
@@ -653,7 +617,7 @@ class TimeSeriesOutput(TestCase):
         stream = mock.Stream()
         obj = TimeSeries.as_dict(self.testdata + "read.PI.timezone.2.xml")
         TimeSeries.write_to_pi_file(stream, obj, offset=0, append=True)
-        target_lines = file(self.testdata + "targetOutput00.xml").readlines()[2:-1]
+        target_lines = file(self.testdata + "targetOutput00.xml").readlines()[3:-1]
         target = ''.join(i.strip() for i in target_lines)
         current = ''.join(i.strip() for i in ''.join(stream.content).split('\n'))
         self.assertEquals(target, current)

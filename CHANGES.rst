@@ -2,10 +2,17 @@ Changelog of timeseries
 ===================================================
 
 
-0.18 (unreleased)
+0.19 (unreleased)
 -----------------
 
 - Added timeseries.__delitem__ for deleting items as a dictionary.
+
+
+0.18 (2012-06-13)
+-----------------
+
+- Use etree instead of minidom for parsing and writing timeseries.
+- Fix some tests and remove some overdone tests.
 
 
 0.17 (2012-03-22)
