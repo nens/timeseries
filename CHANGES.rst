@@ -5,7 +5,7 @@ Changelog of timeseries
 0.18 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Added timeseries.__delitem__ for deleting items as a dictionary.
 
 
 0.17 (2012-03-22)

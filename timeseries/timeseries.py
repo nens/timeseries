@@ -294,6 +294,11 @@ class TimeSeries:
 
         return self._events[key]
 
+    def __delitem__(self, key):
+        """behave as a dictionary
+        """
+        del self._events[key]
+
     def __len__(self):
         """behave as a container"""
         return len(self._events)
