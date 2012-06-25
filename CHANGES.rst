@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.19 (unreleased)
+0.19 (2012-06-25)
 -----------------
 
 - Added timeseries.__delitem__ for deleting items as a dictionary.
