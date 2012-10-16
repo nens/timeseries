@@ -37,5 +37,6 @@ setup(name='timeseries',
       extras_require = {'test': tests_require},
       entry_points={
           'console_scripts': [
+              'percentiles = timeseries.statistics:percentiles',
           ]},
       )
