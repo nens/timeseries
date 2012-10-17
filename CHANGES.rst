@@ -5,7 +5,8 @@ Changelog of timeseries
 0.20 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Add statistics module and console script to generate timeseries
+  statistics.
 
 
 0.19 (2012-06-25)
