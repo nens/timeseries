@@ -186,26 +186,31 @@ class Series(object):
         xmlfile.write('    ')
         xmlfile.writelines(ElementTree.tostringlist(self.root)[-2:])
 
+def mplxy(ser):
+    x = np.array([ser.start + i * ser.step for i in range(len(ser))])
+    y = ser.ma
+    return x,y
+
 
 def percentiles((xml_input_path, xml_output_path)):
 
-    source = Series(xml_input_path)
+    mysource = Series(xml_input_path)
     
-    width = 288
-    height = int(np.ceil(len(source) / width))
+    width = 288 * 7
+    height = int(np.ceil(len(mysource) / width))
 
     ma = np.ma.array(
         np.zeros((width * height)),
         mask=True,
         fill_value=-999,
     )
-    ma[len(source) - 1::-1] = source.ma
+    ma[len(mysource) - 1::-1] = mysource.ma
     ma.shape = height, width
     
     periods = {
-        '10w': 10 * 7,
-        '6m': 26 * 7,
-        '1j': 52 * 7,
+        '10w': 10,
+        '6m': 26,
+        '1j': 52,
     }
     percentiles = (10, 50, 90)
     parameters = {}
@@ -214,15 +219,16 @@ def percentiles((xml_input_path, xml_output_path)):
             parameterkey = 'Q.{}.{}'.format(p,k)
             parameters.update({parameterkey: {'percentile': p, 'period': v}})
     
-    destination = copy.deepcopy(source)
+    destination = copy.deepcopy(mysource)
     
     with open(xml_output_path, 'w') as xmlfile:
         destination.write_header(xmlfile)
+        # results = {}
         for name, parameter in parameters.iteritems():
             if parameter['period'] > height:
                 continue
-            destination.start = source.end - 287 * source.step
-            destination.end = source.end
+            destination.start = mysource.end - (7 * 288 - 1) * mysource.step
+            destination.end = mysource.end
             destination.update_header(name=name)
             destination.ma = np.percentile(
                 ma[0:parameter['period']],
@@ -230,4 +236,5 @@ def percentiles((xml_input_path, xml_output_path)):
                 axis=0,
             )[::-1]
             destination.write_series(xmlfile)
+            # results.update({name: copy.deepcopy(destination)})
         destination.write_footer(xmlfile)
