@@ -1,7 +1,11 @@
 timeseries
 ==========================================
 
-Introduction
+To create the percentile executable, do::
 
-Usage, etc.
+    python bootstrap.py
+    bin/buildout
 
+Then a statistics file can be created from an pi xml file using::
+
+    bin/percentile inputxml outputxml
