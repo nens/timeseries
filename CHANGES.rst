@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.20 (unreleased)
+0.20 (2012-10-17)
 -----------------
 
 - Add statistics module and console script to generate timeseries
