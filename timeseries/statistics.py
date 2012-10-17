@@ -202,11 +202,20 @@ def percentiles((xml_input_path, xml_output_path)):
     ma[len(source) - 1::-1] = source.ma
     ma.shape = height, width
     
-    parameters = {
-        'a': {'percentile': 10, 'period': 52 * 7}, 
-        'b': {'percentile': 10, 'period': 26 * 7}, 
-        'c': {'percentile': 10, 'period': 10 * 7}, 
+    periods = {
+        '10w': 10 * 7,
+        '6m': 26 * 7,
+        '1j': 52 * 7,
     }
+    percentiles = (10, 50, 90)
+    parameters = {}
+    for k, v in periods.items():
+        for p in percentiles:
+            parameterkey = 'Q.{}.{}'.format(p,k)
+            parameters.update({parameterkey: {'percentile': p, 'period': v}})
+    import pprint
+    pprint.pprint(parameters)
+    
     destination = copy.deepcopy(source)
     
     with open(xml_output_path, 'w') as xmlfile:
