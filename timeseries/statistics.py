@@ -213,8 +213,6 @@ def percentiles((xml_input_path, xml_output_path)):
         for p in percentiles:
             parameterkey = 'Q.{}.{}'.format(p,k)
             parameters.update({parameterkey: {'percentile': p, 'period': v}})
-    import pprint
-    pprint.pprint(parameters)
     
     destination = copy.deepcopy(source)
     
