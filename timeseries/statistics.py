@@ -149,11 +149,11 @@ class Series(object):
         """ Update header from self. """
         self._find(self.header, 'startDate').attrib.update(
             date=self.start.strftime('%Y-%m-%d'),
-            time=self.start.strftime('%H-%M-%S'),
+            time=self.start.strftime('%H:%M:%S'),
         )
         self._find(self.header, 'endDate').attrib.update(
             date=self.end.strftime('%Y-%m-%d'),
-            time=self.end.strftime('%H-%M-%S'),
+            time=self.end.strftime('%H:%M:%S'),
         )
         self._find(self.header, 'parameterId').text = name
         
