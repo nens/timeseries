@@ -17,7 +17,6 @@ import sys
 
 from pprint import pprint
 
-
 class Series(object):
     """
     like etree, but:
@@ -94,8 +93,6 @@ class Series(object):
             ns = self._ns(elem)  # Assume same namespace
         return elem.find(self.TAG.format(ns, tag))
         
-        
-
 
 def percentiles_old((xml_input_path, xml_output_path)):
 
@@ -152,71 +149,6 @@ class SeriesReader(object):
     def __init__(self, xml_input_path):
         self.xml_input_path = xml_input_path
 
-    def read(self):
-        """
-        Parses the tree, keeping a shadow tree that does not receive the events. If a series is completed
-        """
-        iterator = iter(ElementTree.iterparse(
-            self.xml_input_path, events=('start', 'end'),
-        ))
-
-        for parse_event, elem in iterator:
-            if parse_event == 'end' and elem.tag.endswith('event'):
-                dt = self._datetime_from_elem(elem)
-                value = elem.attrib['value']
-                series[dt] = value
-                series_element.remove(elem)
-            elif parse_event == 'end' and elem.tag.endswith('header'):
-                series = self._series_from_tree(copy.deepcopy(tree))
-            elif parse_event == 'start' and elem.tag.endswith('series'):
-                series_element = elem
-                tree.append(elem)
-            elif parse_event == 'end' and elem.tag.endswith('series'):
-                yield series
-                tree.remove(elem)
-            elif parse_event == 'start' and elem.tag.endswith('timeZone'):
-                tree.append(elem)
-            elif parse_event == 'start' and elem.tag.endswith('TimeSeries'):
-                # Make tree an empty element
-                tree = elem.copy()
-                map(tree.remove, elem.getchildren())
-
-
-    def _series_from_tree(self, tree):
-        # Find header and remove any events leaking in.
-        remove_from_header = []
-        for elem in tree.iter():
-
-            if elem.tag.endswith('header'):
-                header = elem
-            elif elem.tag.endswith('startDate'):
-                start = self._datetime_from_elem(elem)
-                remove_from_header.append(elem)
-            elif elem.tag.endswith('endDate'):
-                stop = self._datetime_from_elem(elem)
-                remove_from_header.append(elem)
-            elif elem.tag.endswith('timeStep'):
-                step = self._timedelta_from_elem(elem)
-                remove_from_header.append(elem)
-
-        map(header.remove, remove_from_header)
-
-        size = int((stop - start).total_seconds() / step.total_seconds()) + 1
-
-        ma = np.ma.array(
-            np.zeros(size),
-            mask = True,
-            fill_value=-999,
-        )
-
-        return Series(
-            tree=tree,
-            start=start,
-            stop=stop,
-            step=step,
-            ma=ma,
-        )
-
 
     def _datetime_from_elem(self, elem):
         """ Return python datetime object. """
@@ -236,22 +168,129 @@ class SeriesReader(object):
         return datetime.timedelta(**td_kwargs)
 
 
+    def _series_from_tree(self, tree):
+        """
+        Return Series instance from tree, initialized from header.
+
+        Start, stop and step are removed from header.
+        """
+        remove_from_header = []
+        for elem in tree.iter():
+            if elem.tag.endswith('header'):
+                header = elem
+            elif elem.tag.endswith('startDate'):
+                start = self._datetime_from_elem(elem)
+                remove_from_header.append(elem)
+            elif elem.tag.endswith('endDate'):
+                stop = self._datetime_from_elem(elem)
+                remove_from_header.append(elem)
+            elif elem.tag.endswith('timeStep'):
+                step = self._timedelta_from_elem(elem)
+                remove_from_header.append(elem)
+
+        map(header.remove, remove_from_header)
+
+        size = int((stop - start).total_seconds() / step.total_seconds()) + 1
+        ma = np.ma.array(np.zeros(size), mask=True, fill_value=-999)
+
+        return Series(tree=tree, start=start, stop=stop, step=step, ma=ma)
+
+    def read(self):
+        """
+        Returns a generator of series objects.
+
+        As etree parses the tree, it keeps an internal tree that is not necessarily in sync with the events returned by iterparse.
+
+        Therefore we keep a copy of selected elements of the tree that is used to instantiate the series.
+        """
+        iterator = iter(ElementTree.iterparse(
+            self.xml_input_path, events=('start', 'end'),
+        ))
+
+        for parse_event, elem in iterator:
+            if parse_event == 'end' and elem.tag.endswith('event'):
+                dt = self._datetime_from_elem(elem)
+                value = elem.attrib['value']
+                result[dt] = value
+                wildseries.remove(elem)
+            elif parse_event == 'end' and elem.tag.endswith('header'):
+                series.append(copy.deepcopy(elem))
+                result = self._series_from_tree(copy.deepcopy(tree))
+            elif parse_event == 'end' and elem.tag.endswith('series'):
+                yield result
+                wildtree.remove(wildseries)
+                tree.remove(series)
+            elif parse_event == 'start' and elem.tag.endswith('series'):
+                wildseries = elem
+                series = copy.deepcopy(elem)
+                tree.append(series)
+                map(series.remove, series.getchildren()[:])
+            elif parse_event == 'end' and elem.tag.endswith('timeZone'):
+                tree.append(copy.deepcopy(elem))
+            elif parse_event == 'start' and elem.tag.endswith('TimeSeries'):
+                wildtree = elem
+                tree = copy.deepcopy(elem)
+                map(tree.remove, tree.getchildren()[:])
+
+
+
 class PercentileConverter(object):
     
-    PARAMETERS = None
+    PERIODS = {
+        '10w': 10,
+        '6m': 26,
+        '1j': 52,
+    }
+    PERCENTILES = (10, 50, 90)
+    PARAMETERS = {}
+    for k, v in PERIODS.items():
+        for p in PERCENTILES:
+            parameterkey = 'Q.{}.{}'.format(p, k)
+            PARAMETERS.update({
+                parameterkey: {'percentile': p, 'period': v},
+            })
 
-    def _percentile_series(self, series, parameter):
-        pass
+    def _percentile_series(self, series):
+        """
+        """
+    
+        # Create and fill an array with shape (weeks, steps-per-week)
+        width = int(3600 * 24 * 7 / series.step.total_seconds())
+        height = int(np.ceil(len(series) / width))
+        size = height * width
+        table = np.append(
+            series.ma[::-1],
+            np.ma.array(
+                np.zeros(size - len(series)),
+                mask=True,
+                fill_value=series.ma.fill_value,
+            )
+        )
+        table.shape = height, width
 
+        for name, parameter in self.PARAMETERS.iteritems():
+            if parameter['period'] > height:
+                continue
+
+            ma = np.percentile(
+                table[0:parameter['period']],
+                parameter['percentile'],
+                axis=0,
+            )[::-1]
+            stop = series.stop
+            step = series.step
+            start = stop - step * (width - 1)
+            tree = copy.deepcopy(series.tree)
+            for elem in tree.iter():
+                if elem.tag.endswith('parameterId'):
+                    elem.text = name
+
+            yield Series(tree=tree, start=start, stop=stop, step=step, ma=ma)
+        
     def convert(self, series_iterable):
         for series in series_iterable:
-            yield series  # Test version
-        """
-        for series in series_iterable
-            parameters = blabla
-            for parameter in parameters
-            yield _percentile_series(series, parameter)
-        """
+            for result in self._percentile_series(series):
+                yield(result)
 
 
 class SeriesWriter(object):
@@ -344,9 +383,10 @@ class SeriesWriter(object):
 
                 self.initialized = True
             self._write_series(series)
-        self._write_treesection(
-            series=series, part=(-1, None), indent=0
-        )
+        if self.initialized:
+            self._write_treesection(
+                series=series, part=(-1, None), indent=0
+            )
         self.xml_output_file.close()
 
 def percentiles((xml_input_path, xml_output_path)):
@@ -355,3 +395,4 @@ def percentiles((xml_input_path, xml_output_path)):
     writer = SeriesWriter(xml_output_path)
 
     writer.write(converter.convert(reader.read()))
+    #writer.write(reader.read())
