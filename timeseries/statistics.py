@@ -233,66 +233,6 @@ class SeriesReader(object):
                 map(tree.remove, tree.getchildren()[:])
 
 
-
-class PercentileConverter(object):
-    
-    PERIODS = {
-        '10w': 10,
-        '6m': 26,
-        '1j': 52,
-    }
-    PERCENTILES = (10, 50, 90)
-    PARAMETERS = {}
-    for k, v in PERIODS.items():
-        for p in PERCENTILES:
-            parameterkey = 'Q.{}.{}'.format(p, k)
-            PARAMETERS.update({
-                parameterkey: {'percentile': p, 'period': v},
-            })
-
-    def _percentile_series(self, series):
-        """
-        """
-    
-        # Create and fill an array with shape (weeks, steps-per-week)
-        width = int(3600 * 24 * 7 / series.step.total_seconds())
-        height = int(np.ceil(len(series) / width))
-        size = height * width
-        table = np.append(
-            series.ma[::-1],
-            np.ma.array(
-                np.zeros(size - len(series)),
-                mask=True,
-                fill_value=series.ma.fill_value,
-            )
-        )
-        table.shape = height, width
-
-        for name, parameter in self.PARAMETERS.iteritems():
-            if parameter['period'] > height:
-                continue
-
-            ma = np.percentile(
-                table[0:parameter['period']],
-                parameter['percentile'],
-                axis=0,
-            )[::-1]
-            stop = series.stop
-            step = series.step
-            start = stop - step * (width - 1)
-            tree = copy.deepcopy(series.tree)
-            for elem in tree.iter():
-                if elem.tag.endswith('parameterId'):
-                    elem.text = name
-
-            yield Series(tree=tree, start=start, stop=stop, step=step, ma=ma)
-        
-    def convert(self, series_iterable):
-        for series in series_iterable:
-            for result in self._percentile_series(series):
-                yield(result)
-
-
 class SeriesWriter(object):
 
     def __init__(self, xml_output_path):
@@ -388,6 +328,65 @@ class SeriesWriter(object):
                 series=series, part=(-1, None), indent=0
             )
         self.xml_output_file.close()
+
+
+class PercentileConverter(object):
+    
+    PERIODS = {
+        '10w': 10,
+        '6m': 26,
+        '1j': 52,
+    }
+    PERCENTILES = (10, 50, 90)
+    PARAMETERS = {}
+    for k, v in PERIODS.items():
+        for p in PERCENTILES:
+            parameterkey = 'Q.{}.{}'.format(p, k)
+            PARAMETERS.update({
+                parameterkey: {'percentile': p, 'period': v},
+            })
+
+    def _percentile_series(self, series):
+        """
+        """
+        # Create and fill an array with shape (weeks, steps-per-week)
+        width = int(3600 * 24 * 7 / series.step.total_seconds())
+        height = int(np.ceil(len(series) / width))
+        size = height * width
+        table = np.append(
+            series.ma[::-1],
+            np.ma.array(
+                np.zeros(size - len(series)),
+                mask=True,
+                fill_value=series.ma.fill_value,
+            )
+        )
+        table.shape = height, width
+
+        for name, parameter in self.PARAMETERS.iteritems():
+            if parameter['period'] > height:
+                continue
+
+            ma = np.percentile(
+                table[0:parameter['period']],
+                parameter['percentile'],
+                axis=0,
+            )[::-1]
+            stop = series.stop
+            step = series.step
+            start = stop - step * (width - 1)
+            tree = copy.deepcopy(series.tree)
+            for elem in tree.iter():
+                if elem.tag.endswith('parameterId'):
+                    elem.text = name
+
+            yield Series(tree=tree, start=start, stop=stop, step=step, ma=ma)
+        
+    def convert(self, series_iterable):
+        for series in series_iterable:
+            for result in self._percentile_series(series):
+                yield(result)
+
 
 def percentiles((xml_input_path, xml_output_path)):
     reader = SeriesReader(xml_input_path)
