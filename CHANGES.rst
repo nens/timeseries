@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.20.2 (unreleased)
+0.20.2 (2012-10-31)
 -------------------
 
 - bin/percentiles now accepts multiple timeseries in a file.
