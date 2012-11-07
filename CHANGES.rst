@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.20.3 (unreleased)
+0.20.3 (2012-11-07)
 -------------------
 
 - Correct header elements order.
