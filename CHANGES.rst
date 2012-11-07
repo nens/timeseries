@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.20.4 (unreleased)
+0.20.4 (2012-11-07)
 -------------------
 
 - Make statistics module work standalone
