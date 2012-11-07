@@ -15,8 +15,6 @@ import numpy as np
 import re
 import sys
 
-from pprint import pprint
-
 class Series(object):
     """
     like etree, but:
@@ -388,12 +386,24 @@ class PercentileConverter(object):
                 yield(result)
 
 
-def percentiles():
+def percentiles(*args):
+    """
+    To be called by the console script.
+    
+    Since it is not sure if the console script passes the arguments,
+    we accept them, but don't use them.
+    """
     xml_input_path = sys.argv[1]
     xml_output_path = sys.argv[2]
+
     reader = SeriesReader(xml_input_path)
     converter = PercentileConverter()
     writer = SeriesWriter(xml_output_path)
 
     writer.write(converter.convert(reader.read()))
-    #writer.write(reader.read())
+    
+    return 0
+
+
+if __name__ == '__main__':
+    exit(percentiles())

@@ -5,7 +5,8 @@ Changelog of timeseries
 0.20.4 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Make statistics module work standalone
+- Fix error with arguments (due to unreliable console_scripts actions)
 
 
 0.20.3 (2012-11-07)
