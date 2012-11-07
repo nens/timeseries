@@ -8,4 +8,4 @@ To create the percentile executable, do::
 
 Then a statistics file can be created from an pi xml file using::
 
-    bin/percentile inputxml outputxml
+    bin/percentiles inputxml outputxml
