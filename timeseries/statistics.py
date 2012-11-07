@@ -266,6 +266,13 @@ class SeriesWriter(object):
     def _write_range_elements(self, series):
         """ Writes the endDate, startDate and timeStep elements. """
         self._write_flat_element(
+            series=series, tag='timeStep', attrib=dict(
+                unit='second', 
+                multiplier=str(series.step.seconds),
+            ), indent=12,
+        )
+
+        self._write_flat_element(
             series=series, tag='startDate', attrib=dict(
                 date=series.start.strftime('%Y-%m-%d'),
                 time=series.start.strftime('%H:%M:%S'),
@@ -279,19 +286,12 @@ class SeriesWriter(object):
             ), indent=12,
         )
 
-        self._write_flat_element(
-            series=series, tag='timeStep', attrib=dict(
-                unit='second', 
-                multiplier=str(series.step.seconds),
-            ), indent=12,
-        )
-
     def _write_series(self, series):
         """ Write series to xmlfile. """
 
-        self._write_treesection(series=series, part=(11, -5), indent=4)
+        self._write_treesection(series=series, part=(11, -45), indent=4)
         self._write_range_elements(series)
-        self._write_treesection(series=series, part=(-5, -3), indent=8)
+        self._write_treesection(series=series, part=(-45, -3), indent=12)
         
         for dt, value in series:
             self._write_flat_element(
@@ -388,7 +388,9 @@ class PercentileConverter(object):
                 yield(result)
 
 
-def percentiles((xml_input_path, xml_output_path)):
+def percentiles():
+    xml_input_path = sys.argv[1]
+    xml_output_path = sys.argv[2]
     reader = SeriesReader(xml_input_path)
     converter = PercentileConverter()
     writer = SeriesWriter(xml_output_path)
