@@ -5,7 +5,7 @@ Changelog of timeseries
 0.20.3 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Correct header elements order.
 
 
 0.20.2 (2012-10-31)
