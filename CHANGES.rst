@@ -5,7 +5,9 @@ Changelog of timeseries
 0.20.5 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Code cleaned up
+- Range (start, end, step) elements now always placed
+  after third header element.
 
 
 0.20.4 (2012-11-07)

@@ -92,54 +92,6 @@ class Series(object):
         return elem.find(self.TAG.format(ns, tag))
         
 
-def percentiles_old((xml_input_path, xml_output_path)):
-
-    mysource = Series(xml_input_path)
-    
-    width = 288 * 7
-    height = int(np.ceil(len(mysource) / width))
-
-    ma = np.ma.array(
-        np.zeros((width * height)),
-        mask=True,
-        fill_value=-999,
-    )
-    ma[len(mysource) - 1::-1] = mysource.ma
-    ma.shape = height, width
-    
-    periods = {
-        '10w': 10,
-        '6m': 26,
-        '1j': 52,
-    }
-    percentiles = (10, 50, 90)
-    parameters = {}
-    for k, v in periods.items():
-        for p in percentiles:
-            parameterkey = 'Q.{}.{}'.format(p,k)
-            parameters.update({parameterkey: {'percentile': p, 'period': v}})
-    
-    destination = copy.deepcopy(mysource)
-    
-    with open(xml_output_path, 'w') as xmlfile:
-        destination.write_header(xmlfile)
-        # results = {}
-        for name, parameter in parameters.iteritems():
-            if parameter['period'] > height:
-                continue
-            destination.start = mysource.end - (7 * 288 - 1) * mysource.step
-            destination.end = mysource.end
-            destination.update_header(name=name)
-            destination.ma = np.percentile(
-                ma[0:parameter['period']],
-                parameter['percentile'],
-                axis=0,
-            )[::-1]
-            destination.write_series(xmlfile)
-            # results.update({name: copy.deepcopy(destination)})
-        destination.write_footer(xmlfile)
-
-
 class SeriesReader(object):
     PATTERN = re.compile('\{([^{}]*)\}([^{}]*)')
     TAG = '{{{}}}{}'
@@ -245,52 +197,69 @@ class SeriesWriter(object):
         ).group(1)
         ElementTree.register_namespace('', namespace)
 
-    def _write_treesection(self, series, part, indent):
+    def _write_treesection(self, tree, part, indent):
+        """ Write a part of the tree stringlist. """
         self.xml_output_file.write(
             indent * ' ' +
             ''.join(
-                ElementTree.tostringlist(series.tree)[slice(*part)]
+                ElementTree.tostringlist(tree)[slice(*part)]
             ).strip() +
             '\n'
         )
 
     def _write_flat_element(self, series, tag, attrib, indent):
+        """ Write a single element with indentation. """
         element = ElementTree.Element(tag)
         element.attrib = attrib
         self.xml_output_file.write(
             indent * ' ' + ElementTree.tostring(element) + '\n',
         )
     
-    def _write_range_elements(self, series):
-        """ Writes the endDate, startDate and timeStep elements. """
-        self._write_flat_element(
-            series=series, tag='timeStep', attrib=dict(
-                unit='second', 
-                multiplier=str(series.step.seconds),
-            ), indent=12,
+
+    def _add_range_elements(self, tree, series):
+        """ Add range elements from series to tree. """
+        header = [e for e in tree.iter() if e.tag.endswith('header')][0]
+
+        # Remove original elements from header after first three
+        elements = list(header.getchildren())[3:]
+        map(header.remove, elements)
+
+        # Add range elements
+        time = ElementTree.SubElement(header, 'timeStep',
+            unit='second', 
+            multiplier=str(series.step.seconds),
+        )
+        start = ElementTree.SubElement(header, 'startDate', 
+            date=series.start.strftime('%Y-%m-%d'),
+            time=series.start.strftime('%H:%M:%S'),
+        )
+        stop = ElementTree.SubElement(header, 'endDate',
+            date=series.stop.strftime('%Y-%m-%d'),
+            time=series.stop.strftime('%H:%M:%S'),
         )
 
-        self._write_flat_element(
-            series=series, tag='startDate', attrib=dict(
-                date=series.start.strftime('%Y-%m-%d'),
-                time=series.start.strftime('%H:%M:%S'),
-            ), indent=12,
-        )
-
-        self._write_flat_element(
-            series=series, tag='endDate', attrib=dict(
-                date=series.stop.strftime('%Y-%m-%d'),
-                time=series.stop.strftime('%H:%M:%S'),
-            ), indent=12,
-        )
+        # Correct indentation
+        for element in time, start, stop:
+            element.tail = elements[0].tail
+         
+        # Add remaining header elements
+        header.extend(elements)
 
     def _write_series(self, series):
-        """ Write series to xmlfile. """
-
-        self._write_treesection(series=series, part=(11, -45), indent=4)
-        self._write_range_elements(series)
-        self._write_treesection(series=series, part=(-45, -3), indent=12)
+        """ 
+        Write series to xmlfile. 
         
+        Event elements are generated and written one by one to keep
+        memory consumption low.
+        """
+        # We are going to modify the tree.
+        tree = copy.deepcopy(series.tree)
+
+        # Complete the header and write it
+        self._add_range_elements(tree, series)
+        self._write_treesection(tree=tree, part=(11, -3), indent=4)
+        
+        # Write the events
         for dt, value in series:
             self._write_flat_element(
                 series=series, tag='event', attrib=dict(
@@ -301,13 +270,9 @@ class SeriesWriter(object):
                 ), indent=8,
             )
 
-        self._write_treesection(series=series, part=(-3, -1), indent=4)
+        # Write the series closing tag
+        self._write_treesection(tree=tree, part=(-3, -1), indent=4)
 
-    def _write_lead_out(self, series):
-        ElementTree.register_namespace('', self.ns)
-        xmlfile.write('    ')
-        xmlfile.writelines(ElementTree.tostringlist(self.root)[-2:])
-    
     def write(self, series_iterable):
         for series in series_iterable:
             if not self.initialized:
@@ -315,15 +280,16 @@ class SeriesWriter(object):
                 self.xml_output_file.write(
                     '<?xml version="1.0" encoding="UTF-8"?>\n'
                 )
+                # Write TimeSeries tag and timeZone element
                 self._write_treesection(
-                    series=series, part=(None, 11), indent=0,
+                    tree=series.tree, part=(None, 11), indent=0,
                 )
-
                 self.initialized = True
             self._write_series(series)
         if self.initialized:
+            # Write closing tag for TimeSeries element
             self._write_treesection(
-                series=series, part=(-1, None), indent=0
+                tree=series.tree, part=(-1, None), indent=0
             )
         self.xml_output_file.close()
 
