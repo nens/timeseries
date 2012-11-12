@@ -197,16 +197,6 @@ class SeriesWriter(object):
         ).group(1)
         ElementTree.register_namespace('', namespace)
 
-    def _write_treesection(self, tree, part, indent):
-        """ Write a part of the tree stringlist. """
-        self.xml_output_file.write(
-            indent * ' ' +
-            ''.join(
-                ElementTree.tostringlist(tree)[slice(*part)]
-            ).strip() +
-            '\n'
-        )
-
     def _write_flat_element(self, series, tag, attrib, indent):
         """ Write a single element with indentation. """
         element = ElementTree.Element(tag)
@@ -214,7 +204,10 @@ class SeriesWriter(object):
         self.xml_output_file.write(
             indent * ' ' + ElementTree.tostring(element) + '\n',
         )
-    
+
+    def _remove_namespace(self, tree):
+        for element in tree.iter():
+            element.tag = re.sub('{.*}', '', element.tag)
 
     def _add_range_elements(self, tree, series):
         """ Add range elements from series to tree. """
@@ -245,6 +238,32 @@ class SeriesWriter(object):
         # Add remaining header elements
         header.extend(elements)
 
+    def _write_tree(self, tree, begin=None, end=None, indent=0):
+        """ 
+        Write a part of the tree stringlist.
+
+        Begin and end are strings that mark begin and end of the part of
+        the tree that needs to be written. May not work if elementtrees
+        splitting behaviour gets really weird.
+        """
+        
+        self.xml_output_file.write(indent * ' ')
+        
+        write = True if begin is None else False
+
+        for text in ElementTree.tostringlist(tree):
+            if begin is not None and begin in text:
+                write = True
+
+            if write:
+                self.xml_output_file.write(text)
+
+            if end is not None and end in text:
+                break
+
+        if (not text.endswith('\n')) and (end is not None):
+            self.xml_output_file.write('\n')
+
     def _write_series(self, series):
         """ 
         Write series to xmlfile. 
@@ -254,10 +273,11 @@ class SeriesWriter(object):
         """
         # We are going to modify the tree.
         tree = copy.deepcopy(series.tree)
+        self._remove_namespace(tree)
 
         # Complete the header and write it
         self._add_range_elements(tree, series)
-        self._write_treesection(tree=tree, part=(11, -3), indent=4)
+        self._write_tree(tree, begin='<series', end='</header>', indent=4)
         
         # Write the events
         for dt, value in series:
@@ -271,26 +291,25 @@ class SeriesWriter(object):
             )
 
         # Write the series closing tag
-        self._write_treesection(tree=tree, part=(-3, -1), indent=4)
+        self._write_tree(tree, begin='</series', end='</series>', indent=4)
 
     def write(self, series_iterable):
         for series in series_iterable:
+            tree = copy.deepcopy(series.tree)
+
             if not self.initialized:
                 self._register_namespace(series)
                 self.xml_output_file.write(
                     '<?xml version="1.0" encoding="UTF-8"?>\n'
                 )
-                # Write TimeSeries tag and timeZone element
-                self._write_treesection(
-                    tree=series.tree, part=(None, 11), indent=0,
-                )
+                self._write_tree(tree, begin=None, end='</timeZone>')
                 self.initialized = True
+
             self._write_series(series)
+
         if self.initialized:
-            # Write closing tag for TimeSeries element
-            self._write_treesection(
-                tree=series.tree, part=(-1, None), indent=0
-            )
+            self._write_tree(tree, begin='</TimeSeries')
+
         self.xml_output_file.close()
 
 
