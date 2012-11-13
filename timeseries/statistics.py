@@ -324,7 +324,7 @@ class PercentileConverter(object):
     PARAMETERS = {}
     for k, v in PERIODS.items():
         for p in PERCENTILES:
-            parameterkey = 'Q.{}.{}'.format(p, k)
+            parameterkey = 'Q.%s.%s' % (p, k)
             PARAMETERS.update({
                 parameterkey: {'percentile': p, 'period': v},
             })
