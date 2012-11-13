@@ -1,6 +1,6 @@
 from setuptools import setup
 
-version = '0.20.8.dev0'
+version = '0.20.7'
 
 long_description = '\n\n'.join([
     open('README.rst').read(),
@@ -37,6 +37,6 @@ setup(name='timeseries',
       extras_require = {'test': tests_require},
       entry_points={
           'console_scripts': [
-              'percentiles = timeseries.statistics:percentiles',
+              'ziprelease = adapter.ziprelease:main',
           ]},
       )
