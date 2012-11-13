@@ -50,4 +50,4 @@ with zipfile.ZipFile(archivepath, 'w', zipfile.ZIP_DEFLATED) as archivefile:
 
 # Remove versionfile and checkout master
 os.remove(versionpath)
-subprocess.call(shlex.split('git checkout master')).strip()
+subprocess.call(shlex.split('git checkout master'))
