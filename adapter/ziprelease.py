@@ -19,9 +19,10 @@ print('Currently at {}'.format(describe))
 lasttag = describe.split('-')[0]
 
 # checkout latest tag
-print('Trying to checkout tag {}'.format(lasttag))
+print('Check out tag {}'.format(lasttag))
 status = subprocess.call(shlex.split('git checkout {}'.format(lasttag)))
 if status:
+    print('Oops, exiting.')
     exit()
 
 # Determine paths
