@@ -5,7 +5,7 @@ Changelog of timeseries
 0.20.8 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add script to build zips to be deployed on fews machines.
 
 
 0.20.7 (2012-11-13)
