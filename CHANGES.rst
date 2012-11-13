@@ -5,7 +5,8 @@ Changelog of timeseries
 0.20.7 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Moved statistics code to subfolder adapters,
+- Split out the code for reading and writing.
 
 
 0.20.6 (2012-11-13)
