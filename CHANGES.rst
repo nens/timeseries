@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.20.7 (unreleased)
+0.20.7 (2012-11-13)
 -------------------
 
 - Moved statistics code to subfolder adapters,
