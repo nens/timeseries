@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 # (c) Nelen & Schuurmans.  GPL licensed, see LICENSE.rst.
-# version: 0.20.6
+# version: 0.20.6-2-g890f5fc
 from __future__ import print_function
 from __future__ import unicode_literals
 from __future__ import absolute_import
