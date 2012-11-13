@@ -5,7 +5,10 @@ Changelog of timeseries
 0.20.6 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Fixes to statistics:
+    - Use text to select part of tree when writing
+    - Use old fashioned formatting for parameter name
+    
 
 
 0.20.5 (2012-11-08)
