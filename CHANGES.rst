@@ -5,7 +5,7 @@ Changelog of timeseries
 0.20.9 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Change percentiles, now it takes directories as arguments.
 
 
 0.20.8 (2012-11-13)

@@ -8,7 +8,10 @@ from __future__ import absolute_import
 from __future__ import division
 
 import copy
+import glob
 import numpy as np
+import os
+import re
 import sys
 
 from pixml import Series
@@ -74,18 +77,40 @@ class PercentileConverter(object):
                 yield(result)
 
 
-def percentiles():
+def percentiles_files(xml_input_path, xml_output_path):
     """
     Uses the PercentileConverter to calculate 10, 50 and 90 percentiles.
     """
-    xml_input_path = sys.argv[1]
-    xml_output_path = sys.argv[2]
-
     reader = SeriesReader(xml_input_path)
     converter = PercentileConverter()
     writer = SeriesWriter(xml_output_path)
 
     writer.write(converter.convert(reader.read()))
+
+
+def percentiles():
+
+    xml_input_dir = sys.argv[1]
+    xml_output_dir = sys.argv[2]
+
+    # Create output dir if it does not exist.
+    if not os.path.exists(xml_output_dir):
+        os.mkdir(xml_output_dir)
+
+    for xml_input_path in glob.glob(os.path.join(xml_input_dir, '*.xml')):
+        xml_input_file = os.path.basename(xml_input_path)
+        xml_output_file = re.sub('\.xml$', '_percentiles.xml', xml_input_file)
+
+        xml_input_path = os.path.join(xml_input_dir, xml_input_file)
+        xml_output_path = os.path.join(xml_output_dir, xml_output_file)
+
+        print(xml_input_path)
+        print(xml_output_path)
+
+        percentiles_files(
+            xml_input_path=xml_input_path,
+            xml_output_path=xml_output_path,
+        )
 
     return 0
 
