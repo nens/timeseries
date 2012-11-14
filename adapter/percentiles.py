@@ -99,13 +99,10 @@ def percentiles():
 
     for xml_input_path in glob.glob(os.path.join(xml_input_dir, '*.xml')):
         xml_input_file = os.path.basename(xml_input_path)
-        xml_output_file = re.sub('\.xml$', '_percentiles.xml', xml_input_file)
+        xml_output_file = re.sub('^input', 'output', xml_input_file)
 
         xml_input_path = os.path.join(xml_input_dir, xml_input_file)
         xml_output_path = os.path.join(xml_output_dir, xml_output_file)
-
-        print(xml_input_path)
-        print(xml_output_path)
 
         percentiles_files(
             xml_input_path=xml_input_path,

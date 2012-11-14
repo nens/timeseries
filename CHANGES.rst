@@ -5,7 +5,7 @@ Changelog of timeseries
 0.20.10 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Change the way the output files are named.
 
 
 0.20.9 (2012-11-14)
