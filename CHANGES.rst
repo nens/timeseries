@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.20.10 (unreleased)
+0.20.10 (2012-11-14)
 --------------------
 
 - Change the way the output files are named.
