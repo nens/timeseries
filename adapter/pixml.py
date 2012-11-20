@@ -9,10 +9,13 @@ from __future__ import division
 
 from xml.etree import ElementTree
 
+import argparse
 import copy
 import datetime
 import numpy as np
 import re
+import os
+import glob
 
 
 class Series(object):
@@ -156,6 +159,13 @@ class SeriesReader(object):
         iterator = iter(ElementTree.iterparse(
             self.xml_input_path, events=('start', 'end'),
         ))
+
+        # Flake8 does not like the order of the assignments below.
+        result = None
+        series = None
+        wildseries = None
+        tree = None
+        wildtree = None
 
         for parse_event, elem in iterator:
             if parse_event == 'end' and elem.tag.endswith('event'):
@@ -314,3 +324,94 @@ class SeriesWriter(object):
             self._write_tree(tree, begin='</TimeSeries')
 
         self.xml_output_file.close()
+
+
+class SeriesProcessor(object):
+    """
+    Base class for any script that does some kind of modification to timeseries.
+    """
+
+    def _parser(self):
+        """
+        Return basic parser.
+        """
+        parser = argparse.ArgumentParser(
+            description='Argument parser description.',
+        )
+        parser.add_argument(
+            'input',
+            metavar='INPUT',
+            type=str,
+            help='Input file or directory',
+        )
+        parser.add_argument(
+            'output',
+            metavar='OUTPUT',
+            type=str,
+            help='Output file or directory, depending on input.')
+        return parser
+
+    def _process_series(self, series_iterable):
+        """
+        Return generator of resulting series.
+        """
+        for series in series_iterable:
+            for result in self.process(series):
+                yield result
+
+    def _process_file(self, input_file, output_file):
+        reader = SeriesReader(input_file)
+        writer = SeriesWriter(output_file)
+        writer.write(self._process_series(reader.read()))
+
+    def _process_dir(self, input_dir, output_dir):
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+
+        for input_path in glob.glob(os.path.join(input_dir, '*.xml')):
+
+            # Determine name of output files.
+            input_file = os.path.basename(input_path)
+            output_file = re.sub('^input', 'output', input_file)
+
+            output_path = os.path.join(output_dir, output_file)
+
+            # Process pair of files
+            self._process_file(
+                input_file=input_path,
+                output_file=output_path,
+            )
+
+    def main(self):
+        parser = self._parser()
+        self.add_arguments(parser)
+        args = vars(parser.parse_args())
+        input_path = args['input']
+        output_path = args['output']
+
+        if os.path.isfile(input_path):
+            return self._process_file(
+                input_file=input_path,
+                output_file=output_path,
+            )
+
+        if os.path.isdir(input_path):
+            return self._process_dir(
+                input_dir=input_path,
+                output_dir=output_path,
+            )
+
+    def add_arguments(self, parser):
+        """
+        Override this method in scripts to add arguments to the parser,
+        or change its description attribute.
+        """
+        pass
+
+    def process(self, series):
+        """
+        Return series.
+
+        Override this method in scripts.
+        """
+        yield series
