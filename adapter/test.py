@@ -72,4 +72,5 @@ class PercentileProcessor(pixml.SeriesProcessor):
 
 
 if __name__ == '__main__':
-    exit(PercentileProcessor().main())
+    exit(pixml.SeriesProcessor().main())
+    # exit(PercentileProcessor().main())
