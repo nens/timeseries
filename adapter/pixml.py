@@ -328,7 +328,8 @@ class SeriesWriter(object):
 
 class SeriesProcessor(object):
     """
-    Base class for any script that does some kind of modification to timeseries.
+    Base class for any script that does
+    some kind of modification to timeseries.
     """
 
     def _parser(self):

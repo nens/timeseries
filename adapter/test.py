@@ -9,7 +9,7 @@ from __future__ import division
 
 import copy
 import numpy as np
-import pixml
+import pixml2 as pixml
 
 
 class PercentileProcessor(pixml.SeriesProcessor):
@@ -58,16 +58,16 @@ class PercentileProcessor(pixml.SeriesProcessor):
                 parameter['percentile'],
                 axis=0,
             )[::-1]
-            stop = series.stop
+            end = series.end
             step = series.step
-            start = stop - step * (width - 1)
+            start = end - step * (width - 1)
             tree = copy.deepcopy(series.tree)
             for elem in tree.iter():
                 if elem.tag.endswith('parameterId'):
                     elem.text = name
 
             yield pixml.Series(
-                tree=tree, start=start, stop=stop, step=step, ma=ma,
+                tree=tree, start=start, end=end, step=step, ma=ma,
             )
 
 
