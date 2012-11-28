@@ -46,45 +46,33 @@ class PercentileProcessor(pixml.SeriesProcessor):
     def process(self, series):
         """
         """
-        leap = np.empty(len(series), dtype=np.bool8)
 
-        print('tic')
-        """
-        Strategy:
+        # Find some information on leapdays in current series:
+        hits = 0 # Misses
+        misses = 0   # Leapdays present
+        expect = False
+        leap = False
 
-        Find out if leap day in last 366 values
-        Yes: Init table length 366, fill in loop.
-        No: Init table length 365, fill in loop.
-        Flip backwards.
-        """
-
-        
-        couple_count = 0
-        leap_count = 0
-        couple_part = False
-        leap = True
-
-        # Count all leapdays present and determine if leapday in last year
         for i, (d, v) in enumerate(series):
             if d.day == 28 and d.month == 2:
-                 couplepart = True
-            elif d.day == 1 and d.month == 3 and couplepart:
-                couple_count += 1
-                couple_part = False
+                 couplepart = expect = True
             elif d.day == 29 and d.month == 2:
-                leap_count += 1
                 if len(series) - i < 367:
                     leap = True
-
+                expect = False
+                hits += 1
+            elif d.day == 1 and d.month == 3 and expect:
+                misses += 1
+                expect = False
 
         if leap:
             # Make every year have a leap day
             resultlength = 366
-            serieslength = len(series) - leap_count + couple_count
+            serieslength = len(series) + misses
         else:
             # Make every year without a leap day
             resultlength = 365
-            serieslength = len(series) - leap_count
+            serieslength = len(series) - hits
 
         size = int(np.ceil(serieslength / resultlength) * serieslength)
         table = np.ma.array(np.zeros(size), mask=True)
@@ -119,7 +107,7 @@ class PercentileProcessor(pixml.SeriesProcessor):
                 table[i] = v
                 i -= 1
         
-        print('tac')
+        print(i)
         exit()
 
         import ipdb; ipdb.set_trace() 
