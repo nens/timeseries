@@ -30,15 +30,79 @@ class PercentileProcessor(pixml.SeriesProcessor):
     
     def add_arguments(self, parser):
         parser.description = 'Create statistics timeseries.'
+        parser.add_argument(
+            '-p', '--percentiles',
+            metavar='PERCENTILES',
+            nargs = '*',
+            default=[10, 50, 90],
+            type=int,
+            help='Percentiles to be calculated.',
+        )
 
     def process(self, series):
         """
-        Copied from percentile.py
         """
-        # Create and fill an array with shape (weeks, steps-per-week)
-        width = int(3600 * 24 * 7 / series.step.total_seconds())
-        height = int(np.ceil(len(series) / width))
-        size = height * width
+        leapindex = np.empty(len(series), dtype=np.bool8)
+        leaplist = []
+        leapitem = [None, None, None]
+
+        print('tic')
+        for i, (d, v) in enumerate(series):
+            # Create leapitems
+            if d.month == 2 and d.day == 28:
+                leapitem[0] = i
+            elif d.month == 2 and d.day == 29:
+                leapitem[1] = i
+            elif d.month == 3 and d.day == 01:
+                leapitem[2] = i
+                leaplist.append(leapitem)
+                leapitem = [None, None, None]
+
+            # Fill leapindex
+            leapindex[i] = (
+                d.month == 2 and d.day == 29,
+            )
+
+        print('tac')
+        print(leapindex[-366:].size)
+
+        import ipdb; ipdb.set_trace() 
+
+        if leapindex[-366:].any():
+            # Result will contain leap day
+            length = 366
+            size = int(np.ceil(len(series) / length ) * length)
+            table = np.ma.zeros(size, mask=True)
+
+        else:
+            # Result will not contain leap day
+            length = 365
+            size = int(np.ceil(len(series) / length ) * length)
+            table = np.ma.zeros(size, mask=True)
+            temp = series.ma[~leap]
+            table[:temp.size + 1] = temp[::-1]
+            table.shape = (-1, length)
+
+            # Mask leap values, table = compressed()
+
+            
+        import ipdb; ipdb.set_trace() 
+
+        if len(series) -  leaps[-1] <= 367:
+            length = 366
+        else:
+            length = 365
+
+        size = 15 * length
+        table = np.ma.zeros(size, mask=True)
+
+        
+        
+
+
+        # Make sure our data is square
+        length = self.args['length']
+        size = int(np.ceil(len(series) / length ) * length)
         table = np.append(
             series.ma[::-1],
             np.ma.array(
@@ -47,9 +111,14 @@ class PercentileProcessor(pixml.SeriesProcessor):
                 fill_value=series.ma.fill_value,
             )
         )
-        table.shape = height, width
+        table.shape = (-1 ,length)
+        print(table.shape)
+
+        yield series
+        return
 
         for name, parameter in self.PARAMETERS.iteritems():
+
             if parameter['period'] > height:
                 continue
 
@@ -72,5 +141,5 @@ class PercentileProcessor(pixml.SeriesProcessor):
 
 
 if __name__ == '__main__':
-    exit(pixml.SeriesProcessor().main())
-    # exit(PercentileProcessor().main())
+    # exit(pixml.SeriesProcessor().main())
+    exit(PercentileProcessor().main())
