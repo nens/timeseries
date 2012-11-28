@@ -13,6 +13,10 @@ import pixml2 as pixml
 
 
 class PercentileProcessor(pixml.SeriesProcessor):
+
+    NONE = 0
+    SKIP = 1
+    ADD = 2
     
     PERIODS = {
         '10w': 10,
@@ -42,37 +46,87 @@ class PercentileProcessor(pixml.SeriesProcessor):
     def process(self, series):
         """
         """
-        leapindex = np.empty(len(series), dtype=np.bool8)
-        leaplist = []
-        leapitem = [None, None, None]
+        leap = np.empty(len(series), dtype=np.bool8)
 
         print('tic')
+        """
+        Strategy:
+
+        Find out if leap day in last 366 values
+        Yes: Init table length 366, fill in loop.
+        No: Init table length 365, fill in loop.
+        Flip backwards.
+        """
+
+        
+        couple_count = 0
+        leap_count = 0
+        couple_part = False
+        leap = True
+
+        # Count all leapdays present and determine if leapday in last year
         for i, (d, v) in enumerate(series):
-            # Create leapitems
-            if d.month == 2 and d.day == 28:
-                leapitem[0] = i
-            elif d.month == 2 and d.day == 29:
-                leapitem[1] = i
-            elif d.month == 3 and d.day == 01:
-                leapitem[2] = i
-                leaplist.append(leapitem)
-                leapitem = [None, None, None]
+            if d.day == 28 and d.month == 2:
+                 couplepart = True
+            elif d.day == 1 and d.month == 3 and couplepart:
+                couple_count += 1
+                couple_part = False
+            elif d.day == 29 and d.month == 2:
+                leap_count += 1
+                if len(series) - i < 367:
+                    leap = True
 
-            # Fill leapindex
-            leapindex[i] = (
-                d.month == 2 and d.day == 29,
-            )
 
+        if leap:
+            # Make every year have a leap day
+            resultlength = 366
+            serieslength = len(series) - leap_count + couple_count
+        else:
+            # Make every year without a leap day
+            resultlength = 365
+            serieslength = len(series) - leap_count
+
+        size = int(np.ceil(serieslength / resultlength) * serieslength)
+        table = np.ma.array(np.zeros(size), mask=True)
+
+        # Fill statistics table and remove or add leapdays if necessary.
+        action = self.NONE
+        i = serieslength - 1
+        for d, v in series:
+            if d.day == 28 and d.month == 2:
+                # Before possible leap day. If leap, signal that 2-29 must be
+                # filled, else signal that it must be skipped if it is present.
+                action = self.ADD if leap else self.SKIP             
+                table[i] = v
+                i -= 1
+            elif d.day == 29 and d.month == 2:
+                # Leap day! Act according to action and reset action.
+                if action == self.SKIP:
+                    pass
+                elif action == self.ADD:
+                    table[i] = v
+                    i -= 1
+                action = self.NONE
+            elif d.day == 2 and d.month == 3:
+                # After possible leap day. If action is still add,
+                # masked must be added for the leap day.
+                if action == self.ADD:
+                    table[i] = np.ma.masked
+                    i -= 1
+                table[i] = v
+                i -= 1
+            else:
+                table[i] = v
+                i -= 1
+        
         print('tac')
-        print(leapindex[-366:].size)
+        exit()
 
         import ipdb; ipdb.set_trace() 
 
-        if leapindex[-366:].any():
+        if leap[-366:].any():
             # Result will contain leap day
             length = 366
-            size = int(np.ceil(len(series) / length ) * length)
-            table = np.ma.zeros(size, mask=True)
 
         else:
             # Result will not contain leap day
