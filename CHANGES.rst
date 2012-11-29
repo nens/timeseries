@@ -5,7 +5,9 @@ Changelog of timeseries
 0.20.11 (unreleased)
 --------------------
 
-- Nothing changed yet.
+- Add support for binary pixml
+
+- Add script for yearday statistics.
 
 
 0.20.10 (2012-11-14)
