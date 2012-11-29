@@ -7,12 +7,14 @@ from __future__ import unicode_literals
 from __future__ import absolute_import
 from __future__ import division
 
-from xml.etree import ElementTree
+import pixml
 
-import copy
-import datetime
-import numpy as np
-import re
 
-with open(bin_input_file)
-    arr = np.fromstring(binfile.read(), dtype=np.float32)
+class CopyProcessor(pixml.SeriesProcessor):
+    
+    def add_arguments(self, parser):
+        parser.description = 'Copy and / or convert pixml.'
+
+
+if __name__ == '__main__':
+    exit(CopyProcessor().main())

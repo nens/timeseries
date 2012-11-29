@@ -9,7 +9,7 @@ from __future__ import division
 
 import copy
 import numpy as np
-import pixml2 as pixml
+import pixml
 
 
 class PercentileProcessor(pixml.SeriesProcessor):
@@ -18,35 +18,20 @@ class PercentileProcessor(pixml.SeriesProcessor):
     SKIP = 1
     ADD = 2
     
-    PERIODS = {
-        '10w': 10,
-        '6m': 26,
-        '1j': 52,
-    }
-    PERCENTILES = (10, 50, 90)
-    PARAMETERS = {}
-    for k, v in PERIODS.items():
-        for p in PERCENTILES:
-            parameterkey = 'Q.{}.{}'.format(p, k)
-            PARAMETERS.update({
-                parameterkey: {'percentile': p, 'period': v},
-            })
+    PERCENTILES = (10, 25, 75, 90)
+    PERIOD = 15  # Years
+    
+    PARAMETER = {}
+    for percentile in PERCENTILES:
+        name = '.{percentile}p.{period}y'.format(percentile=percentile, period=PERIOD)
+        PARAMETER[name] = percentile
     
     def add_arguments(self, parser):
         parser.description = 'Create statistics timeseries.'
-        parser.add_argument(
-            '-p', '--percentiles',
-            metavar='PERCENTILES',
-            nargs = '*',
-            default=[10, 50, 90],
-            type=int,
-            help='Percentiles to be calculated.',
-        )
 
     def process(self, series):
         """
         """
-
         # Find some information on leapdays in current series:
         hits = 0 # Misses
         misses = 0   # Leapdays present
@@ -65,6 +50,7 @@ class PercentileProcessor(pixml.SeriesProcessor):
                 misses += 1
                 expect = False
 
+        # Initialize statistics table based on this information
         if leap:
             # Make every year have a leap day
             resultlength = 366
@@ -74,7 +60,7 @@ class PercentileProcessor(pixml.SeriesProcessor):
             resultlength = 365
             serieslength = len(series) - hits
 
-        size = int(np.ceil(serieslength / resultlength) * serieslength)
+        size = int(np.ceil(serieslength / resultlength) * resultlength)
         table = np.ma.array(np.zeros(size), mask=True)
 
         # Fill statistics table and remove or add leapdays if necessary.
@@ -106,80 +92,36 @@ class PercentileProcessor(pixml.SeriesProcessor):
             else:
                 table[i] = v
                 i -= 1
-        
-        print(i)
-        exit()
 
-        import ipdb; ipdb.set_trace() 
-
-        if leap[-366:].any():
-            # Result will contain leap day
-            length = 366
-
-        else:
-            # Result will not contain leap day
-            length = 365
-            size = int(np.ceil(len(series) / length ) * length)
-            table = np.ma.zeros(size, mask=True)
-            temp = series.ma[~leap]
-            table[:temp.size + 1] = temp[::-1]
-            table.shape = (-1, length)
-
-            # Mask leap values, table = compressed()
-
-            
-        import ipdb; ipdb.set_trace() 
-
-        if len(series) -  leaps[-1] <= 367:
-            length = 366
-        else:
-            length = 365
-
-        size = 15 * length
-        table = np.ma.zeros(size, mask=True)
-
-        
+        table.shape = (-1, resultlength)
         
 
+        for name, percentile in self.PARAMETER.items():
 
-        # Make sure our data is square
-        length = self.args['length']
-        size = int(np.ceil(len(series) / length ) * length)
-        table = np.append(
-            series.ma[::-1],
-            np.ma.array(
-                np.zeros(size - len(series)),
-                mask=True,
-                fill_value=series.ma.fill_value,
-            )
-        )
-        table.shape = (-1 ,length)
-        print(table.shape)
+            if table.shape[0] < self.PERIOD:
+                years = table.shape[0]
+            else:
+                years = self.PERIOD
 
-        yield series
-        return
+            ma = np.ma.array(np.zeros(resultlength), mask=True)
 
-        for name, parameter in self.PARAMETERS.iteritems():
+            for i in np.arange(ma.size):
+                values = table[0:years, i].compressed()
+                if len(values):
+                    ma[-(i + 1)] = np.percentile(values, percentile)
 
-            if parameter['period'] > height:
-                continue
-
-            ma = np.percentile(
-                table[0:parameter['period']],
-                parameter['percentile'],
-                axis=0,
-            )[::-1]
             end = series.end
             step = series.step
-            start = end - step * (width - 1)
+            start = end - step * (resultlength - 1)
             tree = copy.deepcopy(series.tree)
             for elem in tree.iter():
                 if elem.tag.endswith('parameterId'):
-                    elem.text = name
+                    elem.text += name
 
-            yield pixml.Series(
+            result =  pixml.Series(
                 tree=tree, start=start, end=end, step=step, ma=ma,
             )
+            yield result
 
 
 if __name__ == '__main__':

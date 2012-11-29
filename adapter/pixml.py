@@ -17,6 +17,12 @@ import re
 import os
 import glob
 
+TAG_START = 'startDate'
+TAG_END = 'endDate'
+TAG_STEP = 'timeStep'
+TAG_MISSVAL = 'missVal'
+TAG_PARAMETER_ID = 'parameterId'
+
 
 class Series(object):
     """
@@ -26,13 +32,45 @@ class Series(object):
         closing and opening tags and timezone included.
     """
 
-    def __init__(self, tree, start, stop, step, ma):
-        self.start = start
-        self.stop = stop
-        self.step = step
-        self.tree = tree
-        self.ma = ma
+    def __init__(self, tree, start=None, end=None,
+                 step=None, ma=None, missval=None):
+        """
+        If start, stop or step are None, their values are taken from
+        the tree representing the timeseries without events.
 
+        If ma is None, initialize it with nodata from start, stop and step.
+        """
+        self.tree = tree
+
+        if start is None:
+            self.start = self._get_tree_value(TAG_START)
+        else:
+            self.start = start
+            
+        if end is None:
+            self.end = self._get_tree_value(TAG_END)
+        else:
+            self.end = end
+        
+        if step is None:
+            self.step = self._get_tree_value(TAG_STEP)
+        else:
+            self.step = step
+
+        if missval is None:
+            self.missval = self._get_tree_value(TAG_MISSVAL)
+        else:
+            self.missval = missval
+
+        if ma is None:
+            size = int(
+                (self.end - self.start).total_seconds() /
+                self.step.total_seconds()
+            ) + 1
+            self.ma = np.ma.array(np.zeros(size), mask=True, fill_value=-999)
+        else:
+            self.ma = ma
+            
     def __len__(self):
         """ Return length of timeseries if complete. """
         return self.ma.size
@@ -61,18 +99,6 @@ class Series(object):
         for i in range(len(self)):
             yield self._datetime_from_index(i), self[i]
 
-    def update_header(self, name):
-        """ Update header from self. """
-        self._find(self.header, 'startDate').attrib.update(
-            date=self.start.strftime('%Y-%m-%d'),
-            time=self.start.strftime('%H:%M:%S'),
-        )
-        self._find(self.header, 'endDate').attrib.update(
-            date=self.end.strftime('%Y-%m-%d'),
-            time=self.end.strftime('%H:%M:%S'),
-        )
-        self._find(self.header, 'parameterId').text = name
-
     def _index(self, dt):
         span = dt - self.start
         step = self.step
@@ -81,26 +107,101 @@ class Series(object):
     def _datetime_from_index(self, index):
         return self.start + index * self.step
 
-    def _tag(self, tag):
-        """ Return namespaced tag. """
-        return self.TAG.format(self.ns, tag)
+    # Methods to facilitate modifying tree elements
+    def _get_tree_element(self, tag):
+        """ Get attrib of element with tag in tree. """
+        for element in self.tree.iter():
+            if element.tag.endswith(tag):
+                return element
 
-    def _ns(self, elem):
-        return re.search(self.PATTERN, elem.tag).group(1)
+    def _set_tree_value(self, tag, value):
+        """ Set element properties based on tag. """
+        element = self._get_tree_element(tag)
+        if tag in (TAG_START, TAG_END):
+            element.attrib['date'] = value.strftime('%Y-%m-%d')
+            element.attrib['time'] = value.strftime('%H:%M:%S')
+        elif tag == TAG_STEP:
+            element.attrib['unit'] = 'second'
+            element.attrib['multiplier'] = str(int(value.total_seconds()))
+        elif tag == TAG_PARAMETER_ID:
+            element.text = value
+        elif tag == TAG_MISSVAL:
+            element.text = str(value)
+            
+    def _get_tree_value(self, tag):
+        """ Get element properties based on tag. """
+        element = self._get_tree_element(tag)
+        if tag in (TAG_START, TAG_END):
+            return datetime.datetime.strptime('{date} {time}'.format(
+                date=element.attrib['date'], time=element.attrib['time'],
+            ), '%Y-%m-%d %H:%M:%S')
+        elif tag == TAG_STEP:
+            td_kwargs = {
+                '{}s'.format(element.attrib['unit']):
+                    int(element.attrib['multiplier']),
+            }
+            return datetime.timedelta(**td_kwargs)
+        elif tag == TAG_PARAMETER_ID:
+            return element.text
+        elif tag == TAG_MISSVAL:
+            try:
+                return float(element.text)
+            except ValueError:
+                return element.text
 
-    def _find(self, elem, tag, ns=None):
-        """ find child element. """
-        if ns is None:
-            ns = self._ns(elem)  # Assume same namespace
-        return elem.find(self.TAG.format(ns, tag))
+    # Keep tree in sync with the start attribute
+    def _get_start(self):
+        return self._start
+
+    def _set_start(self, start):
+        self._start = start
+        self._set_tree_value(TAG_START, start)
+
+    start = property(_get_start, _set_start)
+
+    # Keep tree in sync with the end attribute
+    def _get_end(self):
+        return self._end
+
+    def _set_end(self, end):
+        self._end = end
+        self._set_tree_value(TAG_END, end)
+
+    end = property(_get_end, _set_end)
+
+    # Keep tree in sync with the step attribute
+    def _get_step(self):
+        return self._step
+
+    def _set_step(self, step):
+        self._step = step
+        self._set_tree_value(TAG_STEP, step)
+
+    step = property(_get_step, _set_step)
+    
+    # Keep tree in sync with the missval attribute
+    def _get_missval(self):
+        return self._missval
+
+    def _set_missval(self, missval):
+        self._missval = missval
+        self._set_tree_value(TAG_MISSVAL, missval)
+
+    missval = property(_get_missval, _set_missval)
 
 
 class SeriesReader(object):
-    PATTERN = re.compile('\{([^{}]*)\}([^{}]*)')
-    TAG = '{{{}}}{}'
 
     def __init__(self, xml_input_path):
         self.xml_input_path = xml_input_path
+
+        bin_input_path =  re.sub('xml$','bin', xml_input_path)
+        if os.path.exists(bin_input_path):
+            self.bin_input_path = bin_input_path
+            self.binary = True
+        else:
+            self.bin_input_path = None
+            self.binary = False
 
     def _datetime_from_elem(self, elem):
         """ Return python datetime object. """
@@ -112,39 +213,31 @@ class SeriesReader(object):
             '%Y-%m-%d %H:%M:%S',
         )
 
-    def _timedelta_from_elem(self, elem):
-        """ Return python timedelta object. """
-        td_kwargs = {
-            '{}s'.format(elem.attrib['unit']): int(elem.attrib['multiplier']),
-        }
-        return datetime.timedelta(**td_kwargs)
+    def _set_values(self, series, inputfile):
+        """ Set series values from binary inputfile. """
+        values = np.fromfile(
+            inputfile,
+            dtype=np.float32,
+            count=len(series),
+        )
 
-    def _series_from_tree(self, tree):
-        """
-        Return Series instance from tree, initialized from header.
-
-        Start, stop and step are removed from header.
-        """
-        remove_from_header = []
-        for elem in tree.iter():
-            if elem.tag.endswith('header'):
-                header = elem
-            elif elem.tag.endswith('startDate'):
-                start = self._datetime_from_elem(elem)
-                remove_from_header.append(elem)
-            elif elem.tag.endswith('endDate'):
-                stop = self._datetime_from_elem(elem)
-                remove_from_header.append(elem)
-            elif elem.tag.endswith('timeStep'):
-                step = self._timedelta_from_elem(elem)
-                remove_from_header.append(elem)
-
-        map(header.remove, remove_from_header)
-
-        size = int((stop - start).total_seconds() / step.total_seconds()) + 1
-        ma = np.ma.array(np.zeros(size), mask=True, fill_value=-999)
-
-        return Series(tree=tree, start=start, stop=stop, step=step, ma=ma)
+        try:
+            missval = float(series.missval)
+        except ValueError:
+            missval = None
+        
+        if missval is None:
+            mask = False
+            fill_value=-999
+        else:
+            mask = np.equal(values, series.missval),
+            fill_value = missval
+            
+        series.ma[:] = np.ma.array(
+            values,
+            mask=mask,
+            fill_value=fill_value,
+        )
 
     def read(self):
         """
@@ -159,6 +252,9 @@ class SeriesReader(object):
         iterator = iter(ElementTree.iterparse(
             self.xml_input_path, events=('start', 'end'),
         ))
+        if self.binary:
+            bin_input_file = open(self.bin_input_path, 'rb')
+
 
         # Flake8 does not like the order of the assignments below.
         result = None
@@ -168,36 +264,51 @@ class SeriesReader(object):
         wildtree = None
 
         for parse_event, elem in iterator:
+            # At the end of an event, write it to current result
             if parse_event == 'end' and elem.tag.endswith('event'):
                 dt = self._datetime_from_elem(elem)
-                value = elem.attrib['value']
-                result[dt] = value
+                value = float(elem.attrib['value'])
+                if value != result.missval:
+                    result[dt] = value
                 wildseries.remove(elem)
+            # Instantiate a new result when the header is complete
             elif parse_event == 'end' and elem.tag.endswith('header'):
                 series.append(copy.deepcopy(elem))
-                result = self._series_from_tree(copy.deepcopy(tree))
+                result = Series(tree=copy.deepcopy(tree))
+                if self.binary:
+                    self._set_values(series=result, inputfile=bin_input_file)
+            # After the series is completed, yield the result object.
             elif parse_event == 'end' and elem.tag.endswith('series'):
                 yield result
                 wildtree.remove(wildseries)
                 tree.remove(series)
+            # New series. Copy to series, remove unwanted children.
             elif parse_event == 'start' and elem.tag.endswith('series'):
                 wildseries = elem
                 series = copy.deepcopy(elem)
                 tree.append(series)
                 map(series.remove, series.getchildren()[:])
+            # Timezone should be in the copy of the tree
             elif parse_event == 'end' and elem.tag.endswith('timeZone'):
                 tree.append(copy.deepcopy(elem))
             elif parse_event == 'start' and elem.tag.endswith('TimeSeries'):
+            # New timeseries, make a copy and keep that copy nice and tidy.
                 wildtree = elem
                 tree = copy.deepcopy(elem)
                 map(tree.remove, tree.getchildren()[:])
 
+        if self.binary:
+            bin_input_file.close()
+
 
 class SeriesWriter(object):
 
-    def __init__(self, xml_output_path):
-        self.xml_output_file = open(xml_output_path, 'w')
+    def __init__(self, xml_output_path, binary=False):
         self.initialized = False
+        self.binary = binary
+
+        self.xml_output_file = open(xml_output_path, 'w')
+        self.bin_output_path =  re.sub('xml$','bin', xml_output_path)
 
     def _register_namespace(self, series):
         """ Register default namespace for etree output. """
@@ -218,38 +329,6 @@ class SeriesWriter(object):
     def _remove_namespace(self, tree):
         for element in tree.iter():
             element.tag = re.sub('{.*}', '', element.tag)
-
-    def _add_range_elements(self, tree, series):
-        """ Add range elements from series to tree. """
-        header = [e for e in tree.iter() if e.tag.endswith('header')][0]
-
-        # Remove original elements from header after first three
-        elements = list(header.getchildren())[3:]
-        map(header.remove, elements)
-
-        # Add range elements
-        time = ElementTree.SubElement(
-            header, 'timeStep',
-            unit='second',
-            multiplier=str(series.step.seconds),
-        )
-        start = ElementTree.SubElement(
-            header, 'startDate',
-            date=series.start.strftime('%Y-%m-%d'),
-            time=series.start.strftime('%H:%M:%S'),
-        )
-        stop = ElementTree.SubElement(
-            header, 'endDate',
-            date=series.stop.strftime('%Y-%m-%d'),
-            time=series.stop.strftime('%H:%M:%S'),
-        )
-
-        # Correct indentation
-        for element in time, start, stop:
-            element.tail = elements[0].tail
-
-        # Add remaining header elements
-        header.extend(elements)
 
     def _write_tree(self, tree, begin=None, end=None, indent=0):
         """
@@ -277,7 +356,7 @@ class SeriesWriter(object):
         if (not text.endswith('\n')) and (end is not None):
             self.xml_output_file.write('\n')
 
-    def _write_series(self, series):
+    def _write_series(self, series, bin_output_file=None):
         """
         Write series to xmlfile.
 
@@ -288,25 +367,38 @@ class SeriesWriter(object):
         tree = copy.deepcopy(series.tree)
         self._remove_namespace(tree)
 
-        # Complete the header and write it
-        self._add_range_elements(tree, series)
+        # Write header
         self._write_tree(tree, begin='<series', end='</header>', indent=4)
 
         # Write the events
-        for dt, value in series:
-            self._write_flat_element(
-                series=series, tag='event', attrib=dict(
-                    date=dt.strftime('%Y-%m-%d'),
-                    time=dt.strftime('%H:%M:%S'),
-                    value='{:.2f}'.format(value),
-                    flag='0',
-                ), indent=8,
-            )
+        if self.binary:
+            np.float32(series.ma.filled()).tofile(bin_output_file)
+        else:
+            for dt, npvalue in series:
+                if np.ma.is_masked(npvalue):
+                    value='{:.2f}'.format(series.missval)
+                else:
+                    value='{:.2f}'.format(npvalue)
+                
+                self._write_flat_element(
+                    series=series, tag='event', attrib=dict(
+                        date=dt.strftime('%Y-%m-%d'),
+                        time=dt.strftime('%H:%M:%S'),
+                        value=value,
+                        flag='0',
+                    ), indent=8,
+                )
 
         # Write the series closing tag
         self._write_tree(tree, begin='</series', end='</series>', indent=4)
 
     def write(self, series_iterable):
+
+        if self.binary:
+            bin_output_file = open(self.bin_output_path, 'wb')
+        else:
+            bin_output_file = None
+
         for series in series_iterable:
             tree = copy.deepcopy(series.tree)
 
@@ -318,12 +410,14 @@ class SeriesWriter(object):
                 self._write_tree(tree, begin=None, end='</timeZone>')
                 self.initialized = True
 
-            self._write_series(series)
+            self._write_series(series=series, bin_output_file=bin_output_file)
 
         if self.initialized:
             self._write_tree(tree, begin='</TimeSeries')
 
         self.xml_output_file.close()
+        if self.binary:
+            bin_output_file.close()
 
 
 class SeriesProcessor(object):
@@ -349,7 +443,15 @@ class SeriesProcessor(object):
             'output',
             metavar='OUTPUT',
             type=str,
-            help='Output file or directory, depending on input.')
+            help='Output file or directory, depending on input.',
+        )
+        parser.add_argument(
+            '-f', '--format',
+            metavar='FORMAT',
+            type=str,
+            choices='br',
+            help='Force (b)inary or (r)egular format.',
+        )
         return parser
 
     def _process_series(self, series_iterable):
@@ -362,7 +464,13 @@ class SeriesProcessor(object):
 
     def _process_file(self, input_file, output_file):
         reader = SeriesReader(input_file)
-        writer = SeriesWriter(output_file)
+        if self.args['format'] == 'b':
+            binary = True
+        elif self.args['format'] == 'r':
+            binary = False
+        else:
+            binary = reader.binary
+        writer = SeriesWriter(output_file, binary=binary)
         writer.write(self._process_series(reader.read()))
 
     def _process_dir(self, input_dir, output_dir):
@@ -386,9 +494,9 @@ class SeriesProcessor(object):
     def main(self):
         parser = self._parser()
         self.add_arguments(parser)
-        args = vars(parser.parse_args())
-        input_path = args['input']
-        output_path = args['output']
+        self.args = vars(parser.parse_args())
+        input_path = self.args['input']
+        output_path = self.args['output']
 
         if os.path.isfile(input_path):
             return self._process_file(
