@@ -5,7 +5,7 @@ Changelog of timeseries
 0.22 (unreleased)
 -----------------
 
-- Nothing changed yet.
+- Fix writing incorrect missval to binary format
 
 
 0.21 (2012-11-29)

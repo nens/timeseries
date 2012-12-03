@@ -67,7 +67,7 @@ class Series(object):
                 (self.end - self.start).total_seconds() /
                 self.step.total_seconds()
             ) + 1
-            self.ma = np.ma.array(np.zeros(size), mask=True, fill_value=-999)
+            self.ma = np.ma.array(np.zeros(size), mask=True)
         else:
             self.ma = ma
             
@@ -372,7 +372,7 @@ class SeriesWriter(object):
 
         # Write the events
         if self.binary:
-            np.float32(series.ma.filled()).tofile(bin_output_file)
+            np.float32(series.ma.filled(series.missval)).tofile(bin_output_file)
         else:
             for dt, npvalue in series:
                 if np.ma.is_masked(npvalue):
