@@ -2,8 +2,8 @@ Changelog of timeseries
 ===================================================
 
 
-0.22 (unreleased)
------------------
+0.21.1 (2012-12-03)
+-------------------
 
 - Fix writing incorrect missval to binary format
 
