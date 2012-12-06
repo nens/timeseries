@@ -5,7 +5,7 @@ Changelog of timeseries
 0.21.2 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add GLG and GHG calculation to brabant script.
 
 
 0.21.1 (2012-12-03)
