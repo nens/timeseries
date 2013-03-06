@@ -25,5 +25,3 @@ Currently, there are some limitations:
     - Only a common subset of the pixml standard is used
     - Flags on xml input are ignored, output flag is always "0"
     - Formatting of output in xml format values is fixed to .2f
-
-

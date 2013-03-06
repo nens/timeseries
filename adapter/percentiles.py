@@ -42,34 +42,34 @@ class PercentileConverter(object):
         width = int(3600 * 24 * 7 / series.step.total_seconds())
         height = int(np.ceil(len(series) / width))
         size = height * width
-        table = np.append(
+        table = np.ma.concatenate([
             series.ma[::-1],
-            np.ma.array(
-                np.zeros(size - len(series)),
-                mask=True,
-                fill_value=series.ma.fill_value,
-            )
-        )
+            np.ma.array(np.empty(size - len(series)), mask=True),
+        ])
         table.shape = height, width
 
         for name, parameter in self.PARAMETERS.iteritems():
+            # Skip period if not source timeseries not long enough
             if parameter['period'] > height:
                 continue
 
-            ma = np.percentile(
-                table[0:parameter['period']],
-                parameter['percentile'],
-                axis=0,
-            )[::-1]
-            stop = series.stop
+            # Determine the percentiles from the unmasked values
+            ma = np.ma.array(np.empty(table.shape[1]), mask=True)
+            for i in range(ma.size):
+                column = table[0:parameter['period'], i].compressed()
+                if column.size:
+                    ma[i] = np.percentile(column, parameter['percentile'])
+            
+            # Create Series object and yield it.
+            end = series.end
             step = series.step
-            start = stop - step * (width - 1)
+            start = end - step * (width - 1)
             tree = copy.deepcopy(series.tree)
             for elem in tree.iter():
                 if elem.tag.endswith('parameterId'):
                     elem.text = name
 
-            yield Series(tree=tree, start=start, stop=stop, step=step, ma=ma)
+            yield Series(tree=tree, start=start, end=end, step=step, ma=ma)
 
     def convert(self, series_iterable):
         for series in series_iterable:
