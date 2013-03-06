@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.21.3 (unreleased)
+0.21.3 (2013-03-06)
 -------------------
 
 - Add missval support to percentiles script.
