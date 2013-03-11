@@ -58,7 +58,7 @@ class PercentileConverter(object):
             for i in range(ma.size):
                 column = table[0:parameter['period'], i].compressed()
                 if column.size:
-                    ma[i] = np.percentile(column, parameter['percentile'])
+                    ma[-1 - i] = np.percentile(column, parameter['percentile'])
             
             # Create Series object and yield it.
             end = series.end
