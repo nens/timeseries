@@ -2,7 +2,7 @@ Changelog of timeseries
 ===================================================
 
 
-0.21.4 (unreleased)
+0.21.4 (2013-03-11)
 -------------------
 
 - Reversed resulting timeseries in percentiles script.
