@@ -48,8 +48,10 @@ class PercentileProcessor(pixml.SeriesProcessor):
         """
         data = {}
 
-        data['ghg'] = np.ma.sort(table, 1, endwith=False)[:,-3:].mean(0).mean()
-        data['glg'] = np.ma.sort(table, 1, endwith=True)[:,:3].mean(0).mean()
+        data['ghg'] = np.ma.sort(table, 1,
+                                 endwith=False)[:, -3:].mean(0).mean()
+        data['glg'] = np.ma.sort(table, 1,
+                                 endwith=True)[:, :3].mean(0).mean()
 
         for key, value in data.items():
             start = series.end
@@ -64,7 +66,7 @@ class PercentileProcessor(pixml.SeriesProcessor):
                 if elem.tag.endswith('parameterId'):
                     elem.text += '.{}'.format(key)
 
-            result =  pixml.Series(
+            result = pixml.Series(
                 tree=tree, start=start, end=end, step=step, ma=ma,
             )
             yield result
@@ -76,21 +78,18 @@ class PercentileProcessor(pixml.SeriesProcessor):
 
         # Prepare for GLG & GHG
         glg_ghg_window_start, glg_ghg_window_end = self._glg_ghg_window(series)
-        glg_ghg_table = np.ma.array(np.zeros((8,24)), mask=True)
+        glg_ghg_table = np.ma.array(np.zeros((8, 24)), mask=True)
 
         # Find some information on leapdays in current series,
         # At the same time fill glg_ghg_table
-        hits = 0 # Misses
+        hits = 0  # Misses
         misses = 0   # Leapdays present
         expect = False
-        leap = False
 
         for i, (d, v) in enumerate(series):
             if d.day == 28 and d.month == 2:
-                 couplepart = expect = True
+                expect = True
             elif d.day == 29 and d.month == 2:
-                if len(series) - i < 367:
-                    leap = True
                 expect = False
                 hits += 1
             elif d.day == 1 and d.month == 3 and expect:
@@ -110,8 +109,8 @@ class PercentileProcessor(pixml.SeriesProcessor):
         # Calculate & write percentiles
         for name, percentile in self.PARAMETER.items():
             try:
-                percentile_val = np.percentile(series.ma.compressed(), percentile)
-                ma = np.ma.array([percentile_val]*2)
+                val = np.percentile(series.ma.compressed(), percentile)
+                ma = np.ma.array([val] * 2)
             except ValueError:
                 ma = np.ma.masked_all(2)
 
@@ -123,7 +122,7 @@ class PercentileProcessor(pixml.SeriesProcessor):
                 if elem.tag.endswith('parameterId'):
                     elem.text += name
 
-            result =  pixml.Series(
+            result = pixml.Series(
                 tree=tree, start=start, end=end, step=step, ma=ma,
             )
             yield result
