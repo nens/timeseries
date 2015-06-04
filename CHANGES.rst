@@ -5,7 +5,7 @@ Changelog of timeseries
 0.21.5 (unreleased)
 -------------------
 
-- Nothing changed yet.
+- Add hhnk percentile calculation for adapter.
 
 
 0.21.4 (2013-03-11)
