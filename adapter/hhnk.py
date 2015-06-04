@@ -35,7 +35,7 @@ class PercentileProcessor(pixml.SeriesProcessor):
             try:
                 val = np.percentile(series.ma.compressed(), percentile)
                 ma = np.ma.array([val] * 2)
-            except ValueError:
+            except (ValueError, IndexError):
                 ma = np.ma.masked_all(2)
 
             end = series.end
